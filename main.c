@@ -1,5 +1,7 @@
 #include <gtk/gtk.h>
-
+#include "fg3glade.h"
+// unsigned char __fg3_glade[] =
+// unsigned int __fg3_glade_len = 52589;
 
 // to compile
 // gcc ./main.c -o fg3 `pkg-config --cflags --libs gtk+-3.0`
@@ -13,7 +15,8 @@ int main(int argc, char *argv[])
     gtk_init(&argc, &argv);
 
     builder = gtk_builder_new();
-    gtk_builder_add_from_file (builder, "/home/guntars/Desktop/FG3/fg3.glade", NULL);
+
+    gtk_builder_add_from_string(builder, (char*) __fg3_glade, __fg3_glade_len, NULL);
 
     window = GTK_WIDGET(gtk_builder_get_object(builder, "applicationwindow1"));
     gtk_builder_connect_signals(builder, NULL);
