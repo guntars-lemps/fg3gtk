@@ -3,6 +3,7 @@
 
 // to compile
 // gcc ./main.c -o fg3 `pkg-config --cflags --libs gtk+-3.0`
+// test
 
 int main(int argc, char *argv[])
 {
