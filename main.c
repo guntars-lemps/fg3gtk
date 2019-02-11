@@ -47,7 +47,7 @@ void cb_auto_send_toggled()
 void select_device_changed()
 {
     GtkLabel *device_status;
-    GtkEntry f1_dc;
+  //  GtkEntry f1_dc;
 
     printf("select_device_changed()\n");
 
@@ -72,7 +72,7 @@ void select_device_changed()
     pango_attr_list_unref(alist);
 
 
-    f1_dc = GTK_ENTRY(gtk_builder_get_object(builder, "f1_dc"));
+    //f1_dc = GTK_ENTRY(gtk_builder_get_object(builder, "f1_dc"));
 
 
 }

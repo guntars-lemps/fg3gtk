@@ -93,7 +93,7 @@
                 <property name="xalign">0</property>
                 <attributes>
                   <attribute name="weight" value="bold"/>
-                  <attribute name="foreground" value="#4e4e9a9a0606"/>
+                  <attribute name="foreground" value="#cccc00000000"/>
                 </attributes>
               </object>
               <packing>
