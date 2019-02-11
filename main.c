@@ -47,7 +47,7 @@ void cb_auto_send_toggled()
 void select_device_changed()
 {
     GtkLabel *device_status;
-  //  GtkEntry f1_dc;
+    GtkEntry *f1_dc;
 
     printf("select_device_changed()\n");
 
@@ -72,7 +72,20 @@ void select_device_changed()
     pango_attr_list_unref(alist);
 
 
-    //f1_dc = GTK_ENTRY(gtk_builder_get_object(builder, "f1_dc"));
+    f1_dc = GTK_ENTRY(gtk_builder_get_object(builder, "f1_dc"));
+
+    gtk_widget_set_sensitive (GTK_WIDGET(f1_dc), FALSE);
+
+    // 1. Glade
+    // uz radio buttoniem
+    // O Normal mode
+    // O 2 phase mode
+    // O 3 phase mode
+
+    // 2. 3 funkcijas kas pārslēdz modes - disable / enable widgets
+
+
+
 
 
 }
