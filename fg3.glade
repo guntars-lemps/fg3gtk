@@ -4,7 +4,9 @@
   <requires lib="gtk+" version="3.12"/>
   <object class="GtkApplicationWindow" id="applicationwindow1">
     <property name="can_focus">False</property>
+    <property name="halign">baseline</property>
     <property name="title" translatable="yes">FG3</property>
+    <signal name="destroy" handler="on_window_main_destroy" swapped="no"/>
     <child>
       <object class="GtkBox" id="box1">
         <property name="visible">True</property>
@@ -15,7 +17,7 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <child>
-              <object class="GtkButton" id="button1">
+              <object class="GtkButton" id="button_send">
                 <property name="label" translatable="yes">Send</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
@@ -26,35 +28,37 @@
                 <property name="margin_top">10</property>
                 <property name="margin_bottom">10</property>
                 <property name="xalign">0.46000000834465027</property>
+                <signal name="clicked" handler="button_send_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">True</property>
+                <property name="fill">False</property>
                 <property name="position">0</property>
               </packing>
             </child>
             <child>
-              <object class="GtkCheckButton" id="checkbutton1">
+              <object class="GtkCheckButton" id="cb_auto_send">
                 <property name="label" translatable="yes">Auto send</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
                 <property name="valign">baseline</property>
-                <property name="margin_left">10</property>
-                <property name="margin_right">10</property>
+                <property name="margin_left">15</property>
+                <property name="margin_right">50</property>
                 <property name="margin_top">10</property>
                 <property name="margin_bottom">10</property>
                 <property name="xalign">0</property>
                 <property name="draw_indicator">True</property>
+                <signal name="toggled" handler="cb_auto_send_toggled" swapped="no"/>
               </object>
               <packing>
-                <property name="expand">True</property>
+                <property name="expand">False</property>
                 <property name="fill">True</property>
                 <property name="position">1</property>
               </packing>
             </child>
             <child>
-              <object class="GtkComboBoxText" id="comboboxtext1">
+              <object class="GtkComboBoxText" id="select_device">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="halign">end</property>
@@ -67,30 +71,33 @@
                   <item id="0" translatable="yes">/dev/tty0</item>
                   <item id="1" translatable="yes">/dev/tty1</item>
                 </items>
+                <signal name="changed" handler="select_device_changed" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">True</property>
+                <property name="fill">False</property>
                 <property name="position">2</property>
               </packing>
             </child>
             <child>
-              <object class="GtkLabel" id="label1">
+              <object class="GtkLabel" id="device_status">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="margin_left">10</property>
                 <property name="margin_right">10</property>
                 <property name="margin_top">10</property>
                 <property name="margin_bottom">10</property>
-                <property name="label" translatable="yes">CONNECTED</property>
-                <property name="xalign">1</property>
+                <property name="xpad">15</property>
+                <property name="label" translatable="yes">DISCONNECTED</property>
+                <property name="width_chars">6</property>
+                <property name="xalign">0</property>
                 <attributes>
                   <attribute name="weight" value="bold"/>
                   <attribute name="foreground" value="#4e4e9a9a0606"/>
                 </attributes>
               </object>
               <packing>
-                <property name="expand">False</property>
+                <property name="expand">True</property>
                 <property name="fill">True</property>
                 <property name="position">3</property>
               </packing>
@@ -175,7 +182,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkSpinButton" id="spinbutton4">
+                                  <object class="GtkSpinButton" id="f1_period">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="margin_right">15</property>
@@ -188,7 +195,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkRadioButton" id="radiobutton3">
+                                  <object class="GtkRadioButton" id="f1_rb_dc">
                                     <property name="label" translatable="yes">D.C.</property>
                                     <property name="use_action_appearance">False</property>
                                     <property name="visible">True</property>
@@ -196,7 +203,7 @@
                                     <property name="receives_default">False</property>
                                     <property name="xalign">0</property>
                                     <property name="draw_indicator">True</property>
-                                    <property name="group">radiobutton1</property>
+                                    <property name="group">f1_rb_period</property>
                                   </object>
                                   <packing>
                                     <property name="left_attach">3</property>
@@ -204,12 +211,13 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkEntry" id="entry1">
+                                  <object class="GtkEntry" id="f1_dc">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="margin_right">15</property>
                                     <property name="margin_top">5</property>
                                     <property name="margin_bottom">5</property>
+                                    <property name="max_length">8</property>
                                     <property name="width_chars">8</property>
                                   </object>
                                   <packing>
@@ -218,7 +226,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkRadioButton" id="radiobutton1">
+                                  <object class="GtkRadioButton" id="f1_rb_period">
                                     <property name="label" translatable="yes">Pulse, T</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
@@ -233,7 +241,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkSpinButton" id="spinbutton2">
+                                  <object class="GtkSpinButton" id="f1_on_t">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="margin_right">15</property>
@@ -258,7 +266,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkSpinButton" id="spinbutton1">
+                                  <object class="GtkSpinButton" id="f1_delta">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="margin_right">15</property>
@@ -272,7 +280,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkSwitch" id="switch1">
+                                  <object class="GtkSwitch" id="f1_switch">
                                     <property name="height_request">26</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
@@ -281,6 +289,7 @@
                                     <property name="margin_right">15</property>
                                     <property name="margin_top">5</property>
                                     <property name="margin_bottom">5</property>
+                                    <signal name="state-set" handler="f1_switch_state_set" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">0</property>
@@ -407,7 +416,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkSpinButton" id="spinbutton8">
+                                  <object class="GtkSpinButton" id="f2_period">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="margin_right">15</property>
@@ -420,14 +429,14 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkRadioButton" id="radiobutton4">
+                                  <object class="GtkRadioButton" id="f2_rb_dc">
                                     <property name="label" translatable="yes">D.C.</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">False</property>
                                     <property name="xalign">0</property>
                                     <property name="draw_indicator">True</property>
-                                    <property name="group">radiobutton2</property>
+                                    <property name="group">f2_rb_period</property>
                                   </object>
                                   <packing>
                                     <property name="left_attach">3</property>
@@ -435,12 +444,13 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkEntry" id="entry2">
+                                  <object class="GtkEntry" id="f2_dc">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="margin_right">15</property>
                                     <property name="margin_top">5</property>
                                     <property name="margin_bottom">5</property>
+                                    <property name="max_length">8</property>
                                     <property name="width_chars">8</property>
                                   </object>
                                   <packing>
@@ -449,7 +459,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkRadioButton" id="radiobutton2">
+                                  <object class="GtkRadioButton" id="f2_rb_period">
                                     <property name="label" translatable="yes">Pulse, T</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
@@ -464,7 +474,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkSpinButton" id="spinbutton6">
+                                  <object class="GtkSpinButton" id="f2_on_t">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="margin_right">15</property>
@@ -489,7 +499,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkSpinButton" id="spinbutton5">
+                                  <object class="GtkSpinButton" id="f2_delta">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="margin_right">15</property>
@@ -514,7 +524,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkSwitch" id="switch2">
+                                  <object class="GtkSwitch" id="f2_switch">
                                     <property name="height_request">26</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
@@ -523,6 +533,7 @@
                                     <property name="margin_right">15</property>
                                     <property name="margin_top">5</property>
                                     <property name="margin_bottom">5</property>
+                                    <signal name="state-set" handler="f2_switch_state_set" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">0</property>
@@ -636,7 +647,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkSpinButton" id="spinbutton12">
+                                  <object class="GtkSpinButton" id="f3_period">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="margin_right">15</property>
@@ -649,14 +660,14 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkRadioButton" id="radiobutton5">
+                                  <object class="GtkRadioButton" id="f3_rb_dc">
                                     <property name="label" translatable="yes">D.C.</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">False</property>
                                     <property name="xalign">0</property>
                                     <property name="draw_indicator">True</property>
-                                    <property name="group">radiobutton6</property>
+                                    <property name="group">f3_rb_period</property>
                                   </object>
                                   <packing>
                                     <property name="left_attach">3</property>
@@ -664,10 +675,11 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkEntry" id="entry3">
+                                  <object class="GtkEntry" id="f3_dc">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="margin_right">15</property>
+                                    <property name="max_length">8</property>
                                     <property name="width_chars">8</property>
                                   </object>
                                   <packing>
@@ -676,7 +688,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkRadioButton" id="radiobutton6">
+                                  <object class="GtkRadioButton" id="f3_rb_period">
                                     <property name="label" translatable="yes">Pulse, T</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
@@ -691,7 +703,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkSpinButton" id="spinbutton11">
+                                  <object class="GtkSpinButton" id="f3_on_t">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="margin_right">15</property>
@@ -716,7 +728,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkSpinButton" id="spinbutton9">
+                                  <object class="GtkSpinButton" id="f3_delta">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="margin_right">15</property>
@@ -741,7 +753,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkSwitch" id="switch3">
+                                  <object class="GtkSwitch" id="f3_switch">
                                     <property name="height_request">26</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
@@ -750,6 +762,7 @@
                                     <property name="margin_right">15</property>
                                     <property name="margin_top">5</property>
                                     <property name="margin_bottom">5</property>
+                                    <signal name="state-set" handler="f3_switch_state_set" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">0</property>
@@ -830,8 +843,8 @@
                 <property name="can_focus">False</property>
                 <property name="orientation">vertical</property>
                 <child>
-                  <object class="GtkCheckButton" id="checkbutton2">
-                    <property name="label" translatable="yes">3 phase mode</property>
+                  <object class="GtkCheckButton" id="mode_2phase">
+                    <property name="label" translatable="yes">2 phase mode</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
@@ -851,8 +864,8 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkCheckButton" id="checkbutton3">
-                    <property name="label" translatable="yes">Lock F2 to F1</property>
+                  <object class="GtkCheckButton" id="mode_3phase">
+                    <property name="label" translatable="yes">3 phase mode</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
@@ -870,23 +883,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkCheckButton" id="checkbutton4">
-                    <property name="label" translatable="yes">Lock F3 to F1</property>
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">False</property>
-                    <property name="margin_left">10</property>
-                    <property name="margin_right">10</property>
-                    <property name="margin_top">5</property>
-                    <property name="margin_bottom">5</property>
-                    <property name="xalign">0</property>
-                    <property name="draw_indicator">True</property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">2</property>
-                  </packing>
+                  <placeholder/>
                 </child>
                 <child>
                   <placeholder/>

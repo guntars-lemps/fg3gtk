@@ -1,5 +1,5 @@
-CFLAGS=-g -Wall -Wextra `pkg-config --cflags gtk+-3.0`
-LDFLAGS=`pkg-config --libs gtk+-3.0`
+CFLAGS=-g -Wall -Wextra `pkg-config --cflags gtk+-3.0 gmodule-2.0`
+LDFLAGS=`pkg-config --libs gtk+-3.0` -rdynamic
 CC=gcc
 
 OBJECTS=main.o
@@ -21,4 +21,4 @@ fg3glade.h: fg3.glade
 	xxd -i  ./fg3.glade > fg3glade.h
 
 clean:
-	rm fg3gtk fg3glade.h main.o
+	-rm fg3gtk fg3glade.h main.o
