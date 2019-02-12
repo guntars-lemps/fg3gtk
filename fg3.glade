@@ -2,6 +2,63 @@
 <!-- Generated with glade 3.18.3 -->
 <interface>
   <requires lib="gtk+" version="3.12"/>
+  <object class="GtkAdjustment" id="f1_delay_adjustment">
+    <property name="upper">65535</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="f1_on_adjustment">
+    <property name="lower">1</property>
+    <property name="upper">65535</property>
+    <property name="value">1</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="f1_period_adjustment">
+    <property name="lower">1</property>
+    <property name="upper">65535</property>
+    <property name="value">1</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="f2_delay_adjustment">
+    <property name="upper">65535</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="f2_on_adjustment">
+    <property name="lower">1</property>
+    <property name="upper">65535</property>
+    <property name="value">1</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="f2_period_adjustment">
+    <property name="lower">1</property>
+    <property name="upper">65535</property>
+    <property name="value">1</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="f3_delay_adjustment">
+    <property name="upper">65535</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="f3_on_adjustment">
+    <property name="lower">1</property>
+    <property name="upper">65535</property>
+    <property name="value">1</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="f3_period_adjustment">
+    <property name="lower">1</property>
+    <property name="upper">65535</property>
+    <property name="value">1</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
   <object class="GtkApplicationWindow" id="applicationwindow1">
     <property name="can_focus">False</property>
     <property name="halign">baseline</property>
@@ -28,7 +85,7 @@
                 <property name="margin_top">10</property>
                 <property name="margin_bottom">10</property>
                 <property name="xalign">0.46000000834465027</property>
-                <signal name="clicked" handler="button_send_clicked" swapped="no"/>
+                <signal name="clicked" handler="button_send_click" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -49,7 +106,7 @@
                 <property name="margin_bottom">10</property>
                 <property name="xalign">0</property>
                 <property name="draw_indicator">True</property>
-                <signal name="toggled" handler="cb_auto_send_toggled" swapped="no"/>
+                <signal name="toggled" handler="cb_auto_send_toggle" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -71,7 +128,7 @@
                   <item id="0" translatable="yes">/dev/tty0</item>
                   <item id="1" translatable="yes">/dev/tty1</item>
                 </items>
-                <signal name="changed" handler="select_device_changed" swapped="no"/>
+                <signal name="changed" handler="select_device_change" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -188,6 +245,12 @@
                                     <property name="margin_right">15</property>
                                     <property name="margin_top">5</property>
                                     <property name="margin_bottom">5</property>
+                                    <property name="max_length">5</property>
+                                    <property name="width_chars">6</property>
+                                    <property name="max_width_chars">6</property>
+                                    <property name="adjustment">f1_period_adjustment</property>
+                                    <property name="numeric">True</property>
+                                    <signal name="change-value" handler="f1_period_change" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">4</property>
@@ -204,6 +267,7 @@
                                     <property name="xalign">0</property>
                                     <property name="draw_indicator">True</property>
                                     <property name="group">f1_rb_period</property>
+                                    <signal name="toggled" handler="rb_f1_toggle" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">3</property>
@@ -217,8 +281,9 @@
                                     <property name="margin_right">15</property>
                                     <property name="margin_top">5</property>
                                     <property name="margin_bottom">5</property>
-                                    <property name="max_length">8</property>
                                     <property name="width_chars">8</property>
+                                    <property name="max_width_chars">8</property>
+                                    <signal name="changed" handler="f1_dc_change" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">3</property>
@@ -234,6 +299,7 @@
                                     <property name="xalign">0</property>
                                     <property name="active">True</property>
                                     <property name="draw_indicator">True</property>
+                                    <signal name="toggled" handler="rb_f1_toggle" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">2</property>
@@ -247,6 +313,12 @@
                                     <property name="margin_right">15</property>
                                     <property name="margin_top">5</property>
                                     <property name="margin_bottom">5</property>
+                                    <property name="max_length">5</property>
+                                    <property name="width_chars">6</property>
+                                    <property name="max_width_chars">6</property>
+                                    <property name="adjustment">f1_on_adjustment</property>
+                                    <property name="numeric">True</property>
+                                    <signal name="change-value" handler="f1_on_time_change" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">2</property>
@@ -272,7 +344,14 @@
                                     <property name="margin_right">15</property>
                                     <property name="margin_top">5</property>
                                     <property name="margin_bottom">5</property>
-                                    <property name="input_purpose">email</property>
+                                    <property name="max_length">5</property>
+                                    <property name="width_chars">6</property>
+                                    <property name="max_width_chars">6</property>
+                                    <property name="input_purpose">name</property>
+                                    <property name="adjustment">f1_delay_adjustment</property>
+                                    <property name="climb_rate">10</property>
+                                    <property name="numeric">True</property>
+                                    <signal name="change-value" handler="f1_delay_value_change" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">1</property>
@@ -289,6 +368,8 @@
                                     <property name="margin_right">15</property>
                                     <property name="margin_top">5</property>
                                     <property name="margin_bottom">5</property>
+                                    <property name="active">True</property>
+                                    <property name="state">True</property>
                                     <signal name="state-set" handler="f1_switch_state_set" swapped="no"/>
                                   </object>
                                   <packing>
@@ -422,6 +503,12 @@
                                     <property name="margin_right">15</property>
                                     <property name="margin_top">5</property>
                                     <property name="margin_bottom">5</property>
+                                    <property name="max_length">5</property>
+                                    <property name="width_chars">6</property>
+                                    <property name="max_width_chars">6</property>
+                                    <property name="adjustment">f2_period_adjustment</property>
+                                    <property name="numeric">True</property>
+                                    <signal name="change-value" handler="f2_period_change" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">4</property>
@@ -437,6 +524,7 @@
                                     <property name="xalign">0</property>
                                     <property name="draw_indicator">True</property>
                                     <property name="group">f2_rb_period</property>
+                                    <signal name="toggled" handler="rb_f2_toggle" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">3</property>
@@ -450,8 +538,9 @@
                                     <property name="margin_right">15</property>
                                     <property name="margin_top">5</property>
                                     <property name="margin_bottom">5</property>
-                                    <property name="max_length">8</property>
                                     <property name="width_chars">8</property>
+                                    <property name="max_width_chars">8</property>
+                                    <signal name="changed" handler="f2_dc_change" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">3</property>
@@ -467,6 +556,7 @@
                                     <property name="xalign">0</property>
                                     <property name="active">True</property>
                                     <property name="draw_indicator">True</property>
+                                    <signal name="toggled" handler="rb_f2_toggle" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">2</property>
@@ -480,6 +570,12 @@
                                     <property name="margin_right">15</property>
                                     <property name="margin_top">5</property>
                                     <property name="margin_bottom">5</property>
+                                    <property name="max_length">5</property>
+                                    <property name="width_chars">6</property>
+                                    <property name="max_width_chars">6</property>
+                                    <property name="adjustment">f2_on_adjustment</property>
+                                    <property name="numeric">True</property>
+                                    <signal name="change-value" handler="f1_on_time_change" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">2</property>
@@ -505,6 +601,12 @@
                                     <property name="margin_right">15</property>
                                     <property name="margin_top">5</property>
                                     <property name="margin_bottom">5</property>
+                                    <property name="max_length">5</property>
+                                    <property name="width_chars">6</property>
+                                    <property name="max_width_chars">6</property>
+                                    <property name="adjustment">f2_delay_adjustment</property>
+                                    <property name="numeric">True</property>
+                                    <signal name="change-value" handler="f2_delay_value_change" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">1</property>
@@ -533,6 +635,7 @@
                                     <property name="margin_right">15</property>
                                     <property name="margin_top">5</property>
                                     <property name="margin_bottom">5</property>
+                                    <property name="active">True</property>
                                     <signal name="state-set" handler="f2_switch_state_set" swapped="no"/>
                                   </object>
                                   <packing>
@@ -653,6 +756,12 @@
                                     <property name="margin_right">15</property>
                                     <property name="margin_top">5</property>
                                     <property name="margin_bottom">5</property>
+                                    <property name="max_length">5</property>
+                                    <property name="width_chars">6</property>
+                                    <property name="max_width_chars">6</property>
+                                    <property name="adjustment">f3_period_adjustment</property>
+                                    <property name="numeric">True</property>
+                                    <signal name="change-value" handler="f3_period_change" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">4</property>
@@ -668,6 +777,7 @@
                                     <property name="xalign">0</property>
                                     <property name="draw_indicator">True</property>
                                     <property name="group">f3_rb_period</property>
+                                    <signal name="toggled" handler="rb_f3_toggle" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">3</property>
@@ -679,8 +789,9 @@
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="margin_right">15</property>
-                                    <property name="max_length">8</property>
                                     <property name="width_chars">8</property>
+                                    <property name="max_width_chars">8</property>
+                                    <signal name="changed" handler="f3_dc_change" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">3</property>
@@ -696,6 +807,7 @@
                                     <property name="xalign">0</property>
                                     <property name="active">True</property>
                                     <property name="draw_indicator">True</property>
+                                    <signal name="toggled" handler="rb_f3_toggle" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">2</property>
@@ -709,6 +821,12 @@
                                     <property name="margin_right">15</property>
                                     <property name="margin_top">5</property>
                                     <property name="margin_bottom">5</property>
+                                    <property name="max_length">5</property>
+                                    <property name="width_chars">6</property>
+                                    <property name="max_width_chars">6</property>
+                                    <property name="adjustment">f3_on_adjustment</property>
+                                    <property name="numeric">True</property>
+                                    <signal name="change-value" handler="f1_on_time_change" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">2</property>
@@ -734,6 +852,12 @@
                                     <property name="margin_right">15</property>
                                     <property name="margin_top">5</property>
                                     <property name="margin_bottom">5</property>
+                                    <property name="max_length">5</property>
+                                    <property name="width_chars">6</property>
+                                    <property name="max_width_chars">6</property>
+                                    <property name="adjustment">f3_delay_adjustment</property>
+                                    <property name="numeric">True</property>
+                                    <signal name="change-value" handler="f3_delay_value_change" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">1</property>
@@ -762,6 +886,7 @@
                                     <property name="margin_right">15</property>
                                     <property name="margin_top">5</property>
                                     <property name="margin_bottom">5</property>
+                                    <property name="active">True</property>
                                     <signal name="state-set" handler="f3_switch_state_set" swapped="no"/>
                                   </object>
                                   <packing>
@@ -843,19 +968,20 @@
                 <property name="can_focus">False</property>
                 <property name="orientation">vertical</property>
                 <child>
-                  <object class="GtkCheckButton" id="mode_2phase">
-                    <property name="label" translatable="yes">2 phase mode</property>
+                  <object class="GtkRadioButton" id="rb_custom_mode">
+                    <property name="label" translatable="yes">Custom mode</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
-                    <property name="opacity">0.91000000000000003</property>
                     <property name="margin_left">10</property>
-                    <property name="margin_right">10</property>
-                    <property name="margin_top">5</property>
-                    <property name="margin_bottom">5</property>
+                    <property name="margin_right">15</property>
+                    <property name="margin_top">8</property>
+                    <property name="margin_bottom">8</property>
                     <property name="xalign">0</property>
-                    <property name="yalign">0.43999999761581421</property>
+                    <property name="yalign">0.55000001192092896</property>
+                    <property name="active">True</property>
                     <property name="draw_indicator">True</property>
+                    <signal name="toggled" handler="rb_mode_toggle" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -864,17 +990,19 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkCheckButton" id="mode_3phase">
-                    <property name="label" translatable="yes">3 phase mode</property>
+                  <object class="GtkRadioButton" id="rb_2_phase_mode">
+                    <property name="label" translatable="yes">2 phase mode</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
                     <property name="margin_left">10</property>
-                    <property name="margin_right">10</property>
-                    <property name="margin_top">5</property>
-                    <property name="margin_bottom">5</property>
+                    <property name="margin_right">15</property>
+                    <property name="margin_bottom">8</property>
                     <property name="xalign">0</property>
+                    <property name="active">True</property>
                     <property name="draw_indicator">True</property>
+                    <property name="group">rb_custom_mode</property>
+                    <signal name="toggled" handler="rb_mode_toggle" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -883,10 +1011,25 @@
                   </packing>
                 </child>
                 <child>
-                  <placeholder/>
-                </child>
-                <child>
-                  <placeholder/>
+                  <object class="GtkRadioButton" id="rb_3_phase_mode">
+                    <property name="label" translatable="yes">3 phase mode</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">False</property>
+                    <property name="margin_left">10</property>
+                    <property name="margin_right">15</property>
+                    <property name="margin_bottom">8</property>
+                    <property name="xalign">0</property>
+                    <property name="active">True</property>
+                    <property name="draw_indicator">True</property>
+                    <property name="group">rb_custom_mode</property>
+                    <signal name="toggled" handler="rb_mode_toggle" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">2</property>
+                  </packing>
                 </child>
               </object>
               <packing>

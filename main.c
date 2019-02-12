@@ -32,19 +32,19 @@ int main(int argc, char *argv[])
 }
 
 
-void button_send_clicked()
+void button_send_click()
 {
-    printf("button_send_clicked()\n");
+    printf("button_send_click()\n");
 }
 
 
-void cb_auto_send_toggled()
+void cb_auto_send_toggle()
 {
-    printf("cb_auto_send_toggled()\n");
+    printf("cb_auto_send_toggle()\n");
 }
 
 
-void select_device_changed()
+void select_device_change()
 {
     GtkLabel *device_status;
     GtkEntry *f1_dc;
@@ -75,22 +75,9 @@ void select_device_changed()
     f1_dc = GTK_ENTRY(gtk_builder_get_object(builder, "f1_dc"));
 
     gtk_widget_set_sensitive (GTK_WIDGET(f1_dc), FALSE);
-
-    // 1. Glade
-    // uz radio buttoniem
-    // O Normal mode
-    // O 2 phase mode
-    // O 3 phase mode
-
-    // 2. 3 funkcijas kas pārslēdz modes - disable / enable widgets
-
-
-
-
-
 }
 
-
+// ON/OFF switches
 void f1_switch_state_set()
 {
     printf("f1_switch_state_set()\n");
@@ -109,22 +96,106 @@ void f3_switch_state_set()
 }
 
 
-//2. disable element ???
-
-
-/*
-// called when button is clicked
-void on_btn_hello_clicked()
+// delay value
+void f1_delay_value_change()
 {
-    static unsigned int count = 0;
-    char str_count[30] = {0};
-
-    gtk_label_set_text(GTK_LABEL(g_lbl_hello), "Hello, world!");
-    count++;
-    sprintf(str_count, "%d", count);
-    gtk_label_set_text(GTK_LABEL(g_lbl_count), str_count);
+    printf("f1_delay_value_change()\n");
 }
-*/
+
+
+void f2_delay_value_change()
+{
+    printf("f2_delay_value_change()\n");
+}
+
+
+void f3_delay_value_change()
+{
+    printf("f3_delay_value_change()\n");
+}
+
+
+// on value
+void f1_on_time_change()
+{
+    printf("f1_on_time_change()\n");
+}
+
+
+void f2_on_time_change()
+{
+    printf("f2_on_time_change()\n");
+}
+
+
+void f3_on_time_change()
+{
+    printf("f3_on_time_change()\n");
+}
+
+
+// duty cycle change
+void f1_dc_change()
+{
+    printf("f1_dc_change()\n");
+}
+
+
+void f2_dc_change()
+{
+    printf("f2_dc_change()\n");
+}
+
+
+void f3_dc_change()
+{
+    printf("f3_dc_change()\n");
+}
+
+
+// period change
+void f1_period_change()
+{
+    printf("f1_period_change()\n");
+}
+
+
+void f2_period_change()
+{
+    printf("f2_period_change()\n");
+}
+
+
+void f3_period_change()
+{
+    printf("f3_period_change()\n");
+}
+
+
+// radio button ON T vs DC change
+void rb_f1_toggle()
+{
+    printf("rb_f1_toggle()\n");
+}
+
+
+void rb_f2_toggle()
+{
+    printf("rb_f2_toggle()\n");
+}
+
+
+void rb_f3_toggle()
+{
+    printf("rb_f3_toggle()\n");
+}
+
+
+// radio button frequencies mode change
+void rb_mode_toggle()
+{
+    printf("rb_mode_toggle()\n");
+}
 
 
 // called when window is closed
