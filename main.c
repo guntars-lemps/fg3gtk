@@ -6,6 +6,38 @@
 
 GtkBuilder  *builder;
 
+// todo
+
+/*
+
+1. GTK widgets
+    1.1.
+         mode enumeration type
+         status struktūra
+         on/off switches - disable
+         function to enable disable widgets
+         functions to adjust F2 / F3 values
+
+    1.2. cuty cycle eneter mode (auto calculate period)
+    1.3. frequencies info labels - on period in ms, duty cycle %, period in ms (s), frequency (Hz)
+    1.4. pēdējo settingu ielāde (paņemt kodu no oscope2100)
+
+2. rs-232 komunikācijas (paņemt kodu no RPM mērītaja)
+    2.1. status label update funckcija
+    2.2. CRC checksumm function
+    2.3. startējot sūta ping-pong komandu kamēr saņem atbildi !!! vai arī pēc tty errora (kamēr ir diskonektēts)
+    2.4. send on button, auto send
+    2.5. eeprom save button
+
+3. debugging
+[x] 2 phase mode (automātiski rēķina delays, visus F2, diseiblo F3)
+[x] 3 phase mode (automātiski rēķina delays, visus F2, visus F3)
+
+4. uztaisīt normālus make un config
+
+
+*/
+
 
 int main(int argc, char *argv[])
 {
@@ -26,6 +58,17 @@ int main(int argc, char *argv[])
     gtk_widget_show(window);
     printf("start\n");
 
+    // styling "Store" button background color
+    GtkStyleContext *context;
+    GtkCssProvider *provider;
+
+    context = gtk_widget_get_style_context(GTK_WIDGET(gtk_builder_get_object(builder, "button_store")));
+    provider = gtk_css_provider_new();
+
+    gtk_css_provider_load_from_data(provider, "* {background: #dca3a3;} *:active {background: #e38a8a;}", -1, NULL);
+    gtk_style_context_add_provider(context, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    g_object_unref(provider);
+
     gtk_main();
 
     return 0;
@@ -35,6 +78,12 @@ int main(int argc, char *argv[])
 void button_send_click()
 {
     printf("button_send_click()\n");
+}
+
+
+void button_store_click()
+{
+    printf("button_store_click()\n");
 }
 
 
@@ -203,4 +252,68 @@ void on_window_main_destroy()
 {
     g_object_unref(builder);
     gtk_main_quit();
+}
+
+/*gint grab_int_value (GtkSpinButton *button, gpointer user_data)
+{
+  return gtk_spin_button_get_value_as_int (button);
+}
+
+*/
+
+// delay adjustment change
+void f1_delay_adjustment_change()
+{
+    printf("f1_delay_adjustment_change()\n");
+}
+
+
+void f2_delay_adjustment_change()
+{
+    printf("f2_delay_adjustment_change()\n");
+}
+
+
+void f3_delay_adjustment_change()
+{
+    printf("f3_delay_adjustment_change()\n");
+}
+
+
+// on adjustment change
+void f1_on_adjustment_change()
+{
+    printf("f1_on_adjustment_change()\n");
+}
+
+
+void f2_on_adjustment_change()
+{
+    printf("f2_on_adjustment_change()\n");
+}
+
+
+void f3_on_adjustment_change()
+{
+    printf("f3_on_adjustment_change()\n");
+}
+
+
+
+// period adjustment change
+void f1_period_adjustment_change()
+{
+    printf("f1_period_adjustment_change()\n");
+}
+
+
+void f2_period_adjustment_change()
+{
+    printf("f2_period_adjustment_change()\n");
+}
+
+
+void f3_period_adjustment_change()
+{
+    printf("f3_period_adjustment_change()\n");
 }

@@ -6,6 +6,7 @@
     <property name="upper">65535</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
+    <signal name="value-changed" handler="f1_delay_adjustment_change" swapped="no"/>
   </object>
   <object class="GtkAdjustment" id="f1_on_adjustment">
     <property name="lower">1</property>
@@ -13,6 +14,7 @@
     <property name="value">1</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
+    <signal name="value-changed" handler="f1_on_adjustment_change" swapped="no"/>
   </object>
   <object class="GtkAdjustment" id="f1_period_adjustment">
     <property name="lower">1</property>
@@ -20,11 +22,13 @@
     <property name="value">1</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
+    <signal name="value-changed" handler="f1_period_adjustment_change" swapped="no"/>
   </object>
   <object class="GtkAdjustment" id="f2_delay_adjustment">
     <property name="upper">65535</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
+    <signal name="value-changed" handler="f2_delay_adjustment_change" swapped="no"/>
   </object>
   <object class="GtkAdjustment" id="f2_on_adjustment">
     <property name="lower">1</property>
@@ -32,6 +36,7 @@
     <property name="value">1</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
+    <signal name="value-changed" handler="f2_on_adjustment_change" swapped="no"/>
   </object>
   <object class="GtkAdjustment" id="f2_period_adjustment">
     <property name="lower">1</property>
@@ -39,11 +44,13 @@
     <property name="value">1</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
+    <signal name="value-changed" handler="f2_period_adjustment_change" swapped="no"/>
   </object>
   <object class="GtkAdjustment" id="f3_delay_adjustment">
     <property name="upper">65535</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
+    <signal name="value-changed" handler="f3_delay_adjustment_change" swapped="no"/>
   </object>
   <object class="GtkAdjustment" id="f3_on_adjustment">
     <property name="lower">1</property>
@@ -51,6 +58,7 @@
     <property name="value">1</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
+    <signal name="value-changed" handler="f3_on_adjustment_change" swapped="no"/>
   </object>
   <object class="GtkAdjustment" id="f3_period_adjustment">
     <property name="lower">1</property>
@@ -58,6 +66,7 @@
     <property name="value">1</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
+    <signal name="value-changed" handler="f3_period_adjustment_change" swapped="no"/>
   </object>
   <object class="GtkApplicationWindow" id="applicationwindow1">
     <property name="can_focus">False</property>
@@ -74,44 +83,17 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <child>
-              <object class="GtkButton" id="button_send">
-                <property name="label" translatable="yes">Send</property>
+              <object class="GtkLabel" id="label1">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="valign">start</property>
-                <property name="margin_left">10</property>
-                <property name="margin_right">10</property>
-                <property name="margin_top">10</property>
-                <property name="margin_bottom">10</property>
-                <property name="xalign">0.46000000834465027</property>
-                <signal name="clicked" handler="button_send_click" swapped="no"/>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkCheckButton" id="cb_auto_send">
-                <property name="label" translatable="yes">Auto send</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="valign">baseline</property>
-                <property name="margin_left">15</property>
-                <property name="margin_right">50</property>
-                <property name="margin_top">10</property>
-                <property name="margin_bottom">10</property>
-                <property name="xalign">0</property>
-                <property name="draw_indicator">True</property>
-                <signal name="toggled" handler="cb_auto_send_toggle" swapped="no"/>
+                <property name="can_focus">False</property>
+                <property name="xpad">10</property>
+                <property name="ypad">5</property>
+                <property name="label" translatable="yes">Device</property>
               </object>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="position">1</property>
+                <property name="position">0</property>
               </packing>
             </child>
             <child>
@@ -119,8 +101,6 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="halign">end</property>
-                <property name="margin_left">10</property>
-                <property name="margin_right">10</property>
                 <property name="margin_top">10</property>
                 <property name="margin_bottom">10</property>
                 <property name="active_id">0</property>
@@ -133,15 +113,13 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">False</property>
-                <property name="position">2</property>
+                <property name="position">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkLabel" id="device_status">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="margin_left">10</property>
-                <property name="margin_right">10</property>
                 <property name="margin_top">10</property>
                 <property name="margin_bottom">10</property>
                 <property name="xpad">15</property>
@@ -156,7 +134,7 @@
               <packing>
                 <property name="expand">True</property>
                 <property name="fill">True</property>
-                <property name="position">3</property>
+                <property name="position">2</property>
               </packing>
             </child>
           </object>
@@ -226,6 +204,8 @@
                               <object class="GtkGrid" id="grid2">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
+                                <property name="valign">center</property>
+                                <property name="vexpand">True</property>
                                 <child>
                                   <object class="GtkLabel" id="label11">
                                     <property name="visible">True</property>
@@ -249,6 +229,7 @@
                                     <property name="width_chars">6</property>
                                     <property name="max_width_chars">6</property>
                                     <property name="adjustment">f1_period_adjustment</property>
+                                    <property name="climb_rate">10</property>
                                     <property name="numeric">True</property>
                                     <signal name="change-value" handler="f1_period_change" swapped="no"/>
                                   </object>
@@ -283,6 +264,7 @@
                                     <property name="margin_bottom">5</property>
                                     <property name="width_chars">8</property>
                                     <property name="max_width_chars">8</property>
+                                    <property name="input_purpose">digits</property>
                                     <signal name="changed" handler="f1_dc_change" swapped="no"/>
                                   </object>
                                   <packing>
@@ -317,6 +299,7 @@
                                     <property name="width_chars">6</property>
                                     <property name="max_width_chars">6</property>
                                     <property name="adjustment">f1_on_adjustment</property>
+                                    <property name="climb_rate">10</property>
                                     <property name="numeric">True</property>
                                     <signal name="change-value" handler="f1_on_time_change" swapped="no"/>
                                   </object>
@@ -418,7 +401,7 @@
                             </child>
                           </object>
                           <packing>
-                            <property name="expand">False</property>
+                            <property name="expand">True</property>
                             <property name="fill">True</property>
                             <property name="position">1</property>
                           </packing>
@@ -432,8 +415,8 @@
                     </child>
                   </object>
                   <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
                     <property name="position">0</property>
                   </packing>
                 </child>
@@ -479,6 +462,8 @@
                           <object class="GtkBox" id="box8">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
+                            <property name="valign">center</property>
+                            <property name="vexpand">True</property>
                             <property name="orientation">vertical</property>
                             <child>
                               <object class="GtkGrid" id="grid3">
@@ -507,6 +492,7 @@
                                     <property name="width_chars">6</property>
                                     <property name="max_width_chars">6</property>
                                     <property name="adjustment">f2_period_adjustment</property>
+                                    <property name="climb_rate">10</property>
                                     <property name="numeric">True</property>
                                     <signal name="change-value" handler="f2_period_change" swapped="no"/>
                                   </object>
@@ -540,6 +526,7 @@
                                     <property name="margin_bottom">5</property>
                                     <property name="width_chars">8</property>
                                     <property name="max_width_chars">8</property>
+                                    <property name="input_purpose">digits</property>
                                     <signal name="changed" handler="f2_dc_change" swapped="no"/>
                                   </object>
                                   <packing>
@@ -574,6 +561,7 @@
                                     <property name="width_chars">6</property>
                                     <property name="max_width_chars">6</property>
                                     <property name="adjustment">f2_on_adjustment</property>
+                                    <property name="climb_rate">10</property>
                                     <property name="numeric">True</property>
                                     <signal name="change-value" handler="f1_on_time_change" swapped="no"/>
                                   </object>
@@ -605,6 +593,7 @@
                                     <property name="width_chars">6</property>
                                     <property name="max_width_chars">6</property>
                                     <property name="adjustment">f2_delay_adjustment</property>
+                                    <property name="climb_rate">10</property>
                                     <property name="numeric">True</property>
                                     <signal name="change-value" handler="f2_delay_value_change" swapped="no"/>
                                   </object>
@@ -636,6 +625,7 @@
                                     <property name="margin_top">5</property>
                                     <property name="margin_bottom">5</property>
                                     <property name="active">True</property>
+                                    <property name="state">True</property>
                                     <signal name="state-set" handler="f2_switch_state_set" swapped="no"/>
                                   </object>
                                   <packing>
@@ -671,7 +661,7 @@
                             </child>
                           </object>
                           <packing>
-                            <property name="expand">False</property>
+                            <property name="expand">True</property>
                             <property name="fill">True</property>
                             <property name="position">1</property>
                           </packing>
@@ -732,6 +722,8 @@
                           <object class="GtkBox" id="box12">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
+                            <property name="valign">center</property>
+                            <property name="vexpand">True</property>
                             <property name="orientation">vertical</property>
                             <child>
                               <object class="GtkGrid" id="grid4">
@@ -760,6 +752,7 @@
                                     <property name="width_chars">6</property>
                                     <property name="max_width_chars">6</property>
                                     <property name="adjustment">f3_period_adjustment</property>
+                                    <property name="climb_rate">10</property>
                                     <property name="numeric">True</property>
                                     <signal name="change-value" handler="f3_period_change" swapped="no"/>
                                   </object>
@@ -791,6 +784,7 @@
                                     <property name="margin_right">15</property>
                                     <property name="width_chars">8</property>
                                     <property name="max_width_chars">8</property>
+                                    <property name="input_purpose">digits</property>
                                     <signal name="changed" handler="f3_dc_change" swapped="no"/>
                                   </object>
                                   <packing>
@@ -825,6 +819,7 @@
                                     <property name="width_chars">6</property>
                                     <property name="max_width_chars">6</property>
                                     <property name="adjustment">f3_on_adjustment</property>
+                                    <property name="climb_rate">10</property>
                                     <property name="numeric">True</property>
                                     <signal name="change-value" handler="f1_on_time_change" swapped="no"/>
                                   </object>
@@ -856,6 +851,7 @@
                                     <property name="width_chars">6</property>
                                     <property name="max_width_chars">6</property>
                                     <property name="adjustment">f3_delay_adjustment</property>
+                                    <property name="climb_rate">10</property>
                                     <property name="numeric">True</property>
                                     <signal name="change-value" handler="f3_delay_value_change" swapped="no"/>
                                   </object>
@@ -887,6 +883,7 @@
                                     <property name="margin_top">5</property>
                                     <property name="margin_bottom">5</property>
                                     <property name="active">True</property>
+                                    <property name="state">True</property>
                                     <signal name="state-set" handler="f3_switch_state_set" swapped="no"/>
                                   </object>
                                   <packing>
@@ -924,7 +921,7 @@
                             </child>
                           </object>
                           <packing>
-                            <property name="expand">False</property>
+                            <property name="expand">True</property>
                             <property name="fill">True</property>
                             <property name="position">1</property>
                           </packing>
@@ -985,7 +982,7 @@
                   </object>
                   <packing>
                     <property name="expand">False</property>
-                    <property name="fill">True</property>
+                    <property name="fill">False</property>
                     <property name="position">0</property>
                   </packing>
                 </child>
@@ -1006,7 +1003,7 @@
                   </object>
                   <packing>
                     <property name="expand">False</property>
-                    <property name="fill">True</property>
+                    <property name="fill">False</property>
                     <property name="position">1</property>
                   </packing>
                 </child>
@@ -1027,8 +1024,71 @@
                   </object>
                   <packing>
                     <property name="expand">False</property>
-                    <property name="fill">True</property>
+                    <property name="fill">False</property>
                     <property name="position">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="button_store">
+                    <property name="label" translatable="yes">Store</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="valign">end</property>
+                    <property name="margin_left">10</property>
+                    <property name="margin_right">10</property>
+                    <property name="margin_top">5</property>
+                    <property name="margin_bottom">5</property>
+                    <property name="vexpand">True</property>
+                    <property name="relief">half</property>
+                    <property name="xalign">0.46000000834465027</property>
+                    <signal name="clicked" handler="button_store_click" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">3</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkCheckButton" id="cb_auto_send">
+                    <property name="label" translatable="yes">Auto send</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">False</property>
+                    <property name="valign">baseline</property>
+                    <property name="margin_left">10</property>
+                    <property name="margin_right">10</property>
+                    <property name="margin_top">5</property>
+                    <property name="margin_bottom">5</property>
+                    <property name="xalign">0</property>
+                    <property name="draw_indicator">True</property>
+                    <signal name="toggled" handler="cb_auto_send_toggle" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">4</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="button_send">
+                    <property name="label" translatable="yes">Send</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="valign">start</property>
+                    <property name="margin_left">10</property>
+                    <property name="margin_right">10</property>
+                    <property name="margin_top">5</property>
+                    <property name="margin_bottom">5</property>
+                    <property name="xalign">0.46000000834465027</property>
+                    <signal name="clicked" handler="button_send_click" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">5</property>
                   </packing>
                 </child>
               </object>
