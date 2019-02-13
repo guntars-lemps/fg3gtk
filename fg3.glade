@@ -68,6 +68,15 @@
     <property name="page_increment">10</property>
     <signal name="value-changed" handler="f3_period_adjustment_change" swapped="no"/>
   </object>
+  <object class="GtkToggleAction" id="toggleaction1">
+    <signal name="activate" handler="f1_switch_activate" swapped="no"/>
+  </object>
+  <object class="GtkToggleAction" id="toggleaction2">
+    <signal name="activate" handler="f2_switch_activate" swapped="no"/>
+  </object>
+  <object class="GtkToggleAction" id="toggleaction3">
+    <signal name="activate" handler="f3_switch_activate" swapped="no"/>
+  </object>
   <object class="GtkApplicationWindow" id="applicationwindow1">
     <property name="can_focus">False</property>
     <property name="halign">baseline</property>
@@ -228,6 +237,7 @@
                                     <property name="max_length">5</property>
                                     <property name="width_chars">6</property>
                                     <property name="max_width_chars">6</property>
+                                    <property name="input_purpose">digits</property>
                                     <property name="adjustment">f1_period_adjustment</property>
                                     <property name="climb_rate">10</property>
                                     <property name="numeric">True</property>
@@ -264,7 +274,7 @@
                                     <property name="margin_bottom">5</property>
                                     <property name="width_chars">8</property>
                                     <property name="max_width_chars">8</property>
-                                    <property name="input_purpose">digits</property>
+                                    <property name="input_purpose">number</property>
                                     <signal name="changed" handler="f1_dc_change" swapped="no"/>
                                   </object>
                                   <packing>
@@ -298,6 +308,7 @@
                                     <property name="max_length">5</property>
                                     <property name="width_chars">6</property>
                                     <property name="max_width_chars">6</property>
+                                    <property name="input_purpose">digits</property>
                                     <property name="adjustment">f1_on_adjustment</property>
                                     <property name="climb_rate">10</property>
                                     <property name="numeric">True</property>
@@ -330,7 +341,7 @@
                                     <property name="max_length">5</property>
                                     <property name="width_chars">6</property>
                                     <property name="max_width_chars">6</property>
-                                    <property name="input_purpose">name</property>
+                                    <property name="input_purpose">digits</property>
                                     <property name="adjustment">f1_delay_adjustment</property>
                                     <property name="climb_rate">10</property>
                                     <property name="numeric">True</property>
@@ -343,6 +354,8 @@
                                 </child>
                                 <child>
                                   <object class="GtkSwitch" id="f1_switch">
+                                    <property name="use_action_appearance">True</property>
+                                    <property name="related_action">toggleaction1</property>
                                     <property name="height_request">26</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
@@ -353,7 +366,7 @@
                                     <property name="margin_bottom">5</property>
                                     <property name="active">True</property>
                                     <property name="state">True</property>
-                                    <signal name="state-set" handler="f1_switch_state_set" swapped="no"/>
+                                    <signal name="activate" handler="f1_switch_activate" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">0</property>
@@ -491,6 +504,7 @@
                                     <property name="max_length">5</property>
                                     <property name="width_chars">6</property>
                                     <property name="max_width_chars">6</property>
+                                    <property name="input_purpose">digits</property>
                                     <property name="adjustment">f2_period_adjustment</property>
                                     <property name="climb_rate">10</property>
                                     <property name="numeric">True</property>
@@ -526,7 +540,7 @@
                                     <property name="margin_bottom">5</property>
                                     <property name="width_chars">8</property>
                                     <property name="max_width_chars">8</property>
-                                    <property name="input_purpose">digits</property>
+                                    <property name="input_purpose">number</property>
                                     <signal name="changed" handler="f2_dc_change" swapped="no"/>
                                   </object>
                                   <packing>
@@ -560,6 +574,7 @@
                                     <property name="max_length">5</property>
                                     <property name="width_chars">6</property>
                                     <property name="max_width_chars">6</property>
+                                    <property name="input_purpose">digits</property>
                                     <property name="adjustment">f2_on_adjustment</property>
                                     <property name="climb_rate">10</property>
                                     <property name="numeric">True</property>
@@ -592,6 +607,7 @@
                                     <property name="max_length">5</property>
                                     <property name="width_chars">6</property>
                                     <property name="max_width_chars">6</property>
+                                    <property name="input_purpose">digits</property>
                                     <property name="adjustment">f2_delay_adjustment</property>
                                     <property name="climb_rate">10</property>
                                     <property name="numeric">True</property>
@@ -616,6 +632,7 @@
                                 </child>
                                 <child>
                                   <object class="GtkSwitch" id="f2_switch">
+                                    <property name="related_action">toggleaction2</property>
                                     <property name="height_request">26</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
@@ -626,7 +643,7 @@
                                     <property name="margin_bottom">5</property>
                                     <property name="active">True</property>
                                     <property name="state">True</property>
-                                    <signal name="state-set" handler="f2_switch_state_set" swapped="no"/>
+                                    <signal name="activate" handler="f2_switch_activate" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">0</property>
@@ -751,6 +768,7 @@
                                     <property name="max_length">5</property>
                                     <property name="width_chars">6</property>
                                     <property name="max_width_chars">6</property>
+                                    <property name="input_purpose">digits</property>
                                     <property name="adjustment">f3_period_adjustment</property>
                                     <property name="climb_rate">10</property>
                                     <property name="numeric">True</property>
@@ -784,7 +802,7 @@
                                     <property name="margin_right">15</property>
                                     <property name="width_chars">8</property>
                                     <property name="max_width_chars">8</property>
-                                    <property name="input_purpose">digits</property>
+                                    <property name="input_purpose">number</property>
                                     <signal name="changed" handler="f3_dc_change" swapped="no"/>
                                   </object>
                                   <packing>
@@ -818,6 +836,7 @@
                                     <property name="max_length">5</property>
                                     <property name="width_chars">6</property>
                                     <property name="max_width_chars">6</property>
+                                    <property name="input_purpose">digits</property>
                                     <property name="adjustment">f3_on_adjustment</property>
                                     <property name="climb_rate">10</property>
                                     <property name="numeric">True</property>
@@ -850,6 +869,7 @@
                                     <property name="max_length">5</property>
                                     <property name="width_chars">6</property>
                                     <property name="max_width_chars">6</property>
+                                    <property name="input_purpose">digits</property>
                                     <property name="adjustment">f3_delay_adjustment</property>
                                     <property name="climb_rate">10</property>
                                     <property name="numeric">True</property>
@@ -874,6 +894,7 @@
                                 </child>
                                 <child>
                                   <object class="GtkSwitch" id="f3_switch">
+                                    <property name="related_action">toggleaction3</property>
                                     <property name="height_request">26</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
@@ -884,7 +905,7 @@
                                     <property name="margin_bottom">5</property>
                                     <property name="active">True</property>
                                     <property name="state">True</property>
-                                    <signal name="state-set" handler="f3_switch_state_set" swapped="no"/>
+                                    <signal name="activate" handler="f3_switch_activate" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">0</property>
