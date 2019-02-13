@@ -332,7 +332,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkSpinButton" id="f1_delta">
+                                  <object class="GtkSpinButton" id="f1_delay">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="margin_right">15</property>
@@ -598,7 +598,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkSpinButton" id="f2_delta">
+                                  <object class="GtkSpinButton" id="f2_delay">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="margin_right">15</property>
@@ -860,7 +860,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkSpinButton" id="f3_delta">
+                                  <object class="GtkSpinButton" id="f3_delay">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="margin_right">15</property>

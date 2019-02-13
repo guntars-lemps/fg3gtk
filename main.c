@@ -234,83 +234,6 @@ void f3_switch_activate()
 }
 
 
-
-// delay value
-void f1_delay_value_change()
-{
-    printf("f1_delay_value_change()\n");
-}
-
-
-void f2_delay_value_change()
-{
-    printf("f2_delay_value_change()\n");
-}
-
-
-void f3_delay_value_change()
-{
-    printf("f3_delay_value_change()\n");
-}
-
-
-// on value
-void f1_on_time_change()
-{
-    printf("f1_on_time_change()\n");
-}
-
-
-void f2_on_time_change()
-{
-    printf("f2_on_time_change()\n");
-}
-
-
-void f3_on_time_change()
-{
-    printf("f3_on_time_change()\n");
-}
-
-
-// duty cycle change
-void f1_dc_change()
-{
-    printf("f1_dc_change()\n");
-}
-
-
-void f2_dc_change()
-{
-    printf("f2_dc_change()\n");
-}
-
-
-void f3_dc_change()
-{
-    printf("f3_dc_change()\n");
-}
-
-
-// period change
-void f1_period_change()
-{
-    printf("f1_period_change()\n");
-}
-
-
-void f2_period_change()
-{
-    printf("f2_period_change()\n");
-}
-
-
-void f3_period_change()
-{
-    printf("f3_period_change()\n");
-}
-
-
 // radio button ON T vs DC change
 void rb_f1_toggle()
 {
@@ -367,23 +290,24 @@ void on_window_main_destroy()
     gtk_main_quit();
 }
 
-/*gint grab_int_value (GtkSpinButton *button, gpointer user_data)
-{
-  return gtk_spin_button_get_value_as_int (button);
-}
-
-*/
 
 // delay adjustment change
 void f1_delay_adjustment_change()
 {
     printf("f1_delay_adjustment_change()\n");
+    guint16 f1_delay = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f1_delay")));
+    printf("f1 delay = %d\n", f1_delay);
+
+ jāsalīdzina 0 .. 65535 katram gadījumam
+
 }
 
 
 void f2_delay_adjustment_change()
 {
     printf("f2_delay_adjustment_change()\n");
+  // tests
+   //    gtk_adjustment_set_upper(GTK_ADJUSTMENT(gtk_builder_get_object(builder, "f1_delay_adjustment")), 1000);
 }
 
 
@@ -397,6 +321,15 @@ void f3_delay_adjustment_change()
 void f1_on_adjustment_change()
 {
     printf("f1_on_adjustment_change()\n");
+
+    /*if (f1_delay >= f.f1_period) {
+        f1_delay = f.f1_period - 1;
+        if (f1_delay < 0) {
+            f1_delay = 0;
+        }
+    } else {
+        f.f1_delay = f1_delay;
+    }*/
 }
 
 
@@ -411,6 +344,24 @@ void f3_on_adjustment_change()
     printf("f3_on_adjustment_change()\n");
 }
 
+
+// duty cycle change
+void f1_dc_change()
+{
+    printf("f1_dc_change()\n");
+}
+
+
+void f2_dc_change()
+{
+    printf("f2_dc_change()\n");
+}
+
+
+void f3_dc_change()
+{
+    printf("f3_dc_change()\n");
+}
 
 
 // period adjustment change
@@ -437,7 +388,7 @@ void f3_period_adjustment_change()
 
 void f1_control_enable(gboolean enable)
 {
-    gtk_widget_set_sensitive(GTK_WIDGET(gtk_builder_get_object(builder, "f1_delta")), enable);
+    gtk_widget_set_sensitive(GTK_WIDGET(gtk_builder_get_object(builder, "f1_delay")), enable);
     gtk_widget_set_sensitive(GTK_WIDGET(gtk_builder_get_object(builder, "f1_on_t")), enable);
     gtk_widget_set_sensitive(GTK_WIDGET(gtk_builder_get_object(builder, "f1_dc")), enable);
     gtk_widget_set_sensitive(GTK_WIDGET(gtk_builder_get_object(builder, "f1_period")), enable);
@@ -448,7 +399,7 @@ void f1_control_enable(gboolean enable)
 
 void f2_control_enable(gboolean enable)
 {
-    gtk_widget_set_sensitive(GTK_WIDGET(gtk_builder_get_object(builder, "f2_delta")), enable);
+    gtk_widget_set_sensitive(GTK_WIDGET(gtk_builder_get_object(builder, "f2_delay")), enable);
     gtk_widget_set_sensitive(GTK_WIDGET(gtk_builder_get_object(builder, "f2_on_t")), enable);
     gtk_widget_set_sensitive(GTK_WIDGET(gtk_builder_get_object(builder, "f2_dc")), enable);
     gtk_widget_set_sensitive(GTK_WIDGET(gtk_builder_get_object(builder, "f2_period")), enable);
@@ -459,7 +410,7 @@ void f2_control_enable(gboolean enable)
 
 void f3_control_enable(gboolean enable)
 {
-    gtk_widget_set_sensitive(GTK_WIDGET(gtk_builder_get_object(builder, "f3_delta")), enable);
+    gtk_widget_set_sensitive(GTK_WIDGET(gtk_builder_get_object(builder, "f3_delay")), enable);
     gtk_widget_set_sensitive(GTK_WIDGET(gtk_builder_get_object(builder, "f3_on_t")), enable);
     gtk_widget_set_sensitive(GTK_WIDGET(gtk_builder_get_object(builder, "f3_dc")), enable);
     gtk_widget_set_sensitive(GTK_WIDGET(gtk_builder_get_object(builder, "f3_period")), enable);
@@ -539,9 +490,9 @@ void set_frequencies()
     // ...
     adjust_phase_values(&f);
     /*
-    f1_delta GtkSpinButton
-    f2_delta GtkSpinButton
-    f3_delta GtkSpinButton
+    f1_delay GtkSpinButton
+    f2_delay GtkSpinButton
+    f3_delay GtkSpinButton
 
     f1_on_t GtkSpinButton
     f2_on_t GtkSpinButton
@@ -667,7 +618,7 @@ gboolean time_handler(GtkWidget *widget)
     if (widget == NULL) {
         return FALSE;
     }
-    printf("Tick\n");
+   // printf("Tick\n");
 
     // gtk_widget_queue_draw(widget);
 
