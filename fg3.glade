@@ -10,16 +10,16 @@
   </object>
   <object class="GtkAdjustment" id="f1_on_adjustment">
     <property name="lower">1</property>
-    <property name="upper">65535</property>
+    <property name="upper">65534</property>
     <property name="value">1</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
     <signal name="value-changed" handler="f1_on_adjustment_change" swapped="no"/>
   </object>
   <object class="GtkAdjustment" id="f1_period_adjustment">
-    <property name="lower">1</property>
+    <property name="lower">2</property>
     <property name="upper">65535</property>
-    <property name="value">1</property>
+    <property name="value">2</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
     <signal name="value-changed" handler="f1_period_adjustment_change" swapped="no"/>
@@ -32,16 +32,16 @@
   </object>
   <object class="GtkAdjustment" id="f2_on_adjustment">
     <property name="lower">1</property>
-    <property name="upper">65535</property>
+    <property name="upper">65534</property>
     <property name="value">1</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
     <signal name="value-changed" handler="f2_on_adjustment_change" swapped="no"/>
   </object>
   <object class="GtkAdjustment" id="f2_period_adjustment">
-    <property name="lower">1</property>
+    <property name="lower">2</property>
     <property name="upper">65535</property>
-    <property name="value">1</property>
+    <property name="value">2</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
     <signal name="value-changed" handler="f2_period_adjustment_change" swapped="no"/>
@@ -54,16 +54,16 @@
   </object>
   <object class="GtkAdjustment" id="f3_on_adjustment">
     <property name="lower">1</property>
-    <property name="upper">65535</property>
+    <property name="upper">65534</property>
     <property name="value">1</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
     <signal name="value-changed" handler="f3_on_adjustment_change" swapped="no"/>
   </object>
   <object class="GtkAdjustment" id="f3_period_adjustment">
-    <property name="lower">1</property>
+    <property name="lower">2</property>
     <property name="upper">65535</property>
-    <property name="value">1</property>
+    <property name="value">2</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
     <signal name="value-changed" handler="f3_period_adjustment_change" swapped="no"/>
@@ -241,7 +241,6 @@
                                     <property name="adjustment">f1_period_adjustment</property>
                                     <property name="climb_rate">10</property>
                                     <property name="numeric">True</property>
-                                    <signal name="change-value" handler="f1_period_change" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">4</property>
@@ -312,7 +311,6 @@
                                     <property name="adjustment">f1_on_adjustment</property>
                                     <property name="climb_rate">10</property>
                                     <property name="numeric">True</property>
-                                    <signal name="change-value" handler="f1_on_time_change" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">2</property>
@@ -345,7 +343,6 @@
                                     <property name="adjustment">f1_delay_adjustment</property>
                                     <property name="climb_rate">10</property>
                                     <property name="numeric">True</property>
-                                    <signal name="change-value" handler="f1_delay_value_change" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">1</property>
@@ -508,7 +505,6 @@
                                     <property name="adjustment">f2_period_adjustment</property>
                                     <property name="climb_rate">10</property>
                                     <property name="numeric">True</property>
-                                    <signal name="change-value" handler="f2_period_change" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">4</property>
@@ -578,7 +574,6 @@
                                     <property name="adjustment">f2_on_adjustment</property>
                                     <property name="climb_rate">10</property>
                                     <property name="numeric">True</property>
-                                    <signal name="change-value" handler="f1_on_time_change" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">2</property>
@@ -611,7 +606,6 @@
                                     <property name="adjustment">f2_delay_adjustment</property>
                                     <property name="climb_rate">10</property>
                                     <property name="numeric">True</property>
-                                    <signal name="change-value" handler="f2_delay_value_change" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">1</property>
@@ -772,7 +766,6 @@
                                     <property name="adjustment">f3_period_adjustment</property>
                                     <property name="climb_rate">10</property>
                                     <property name="numeric">True</property>
-                                    <signal name="change-value" handler="f3_period_change" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">4</property>
@@ -840,7 +833,6 @@
                                     <property name="adjustment">f3_on_adjustment</property>
                                     <property name="climb_rate">10</property>
                                     <property name="numeric">True</property>
-                                    <signal name="change-value" handler="f1_on_time_change" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">2</property>
@@ -873,7 +865,6 @@
                                     <property name="adjustment">f3_delay_adjustment</property>
                                     <property name="climb_rate">10</property>
                                     <property name="numeric">True</property>
-                                    <signal name="change-value" handler="f3_delay_value_change" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">1</property>

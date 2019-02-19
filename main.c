@@ -1,4 +1,7 @@
 #include <gtk/gtk.h>
+#include <string.h>
+//#include <stdio.h>
+#include <stdlib.h>
 #include "fg3glade.h"
 
 //make clean && make && ./fg3gtk
@@ -16,54 +19,39 @@ typedef enum {ST_ERROR, ST_INFO} t_status_type;
 
 t_mode mode = MODE_CUSTOM;
 
-//guint8;
-//guint16;
-
 typedef struct
 {
-    gboolean f1_enabled;
-    guint16 f1_delay;
-    guint16 f1_on;
-    guint16 f1_period;
-
-    gboolean f2_enabled;
-    guint16 f2_delay;
-    guint16 f2_on;
-    guint16 f2_period;
-
-    gboolean f3_enabled;
-    guint16 f3_delay;
-    guint16 f3_on;
-    guint16 f3_period;
+    gboolean enabled;
+    guint16 delay;
+    guint16 on;
+    guint16 period;
+    gboolean dc_mode;
+    gdouble dc_value;
 } tfrequencies;
 
 
-tfrequencies f;
+tfrequencies f1, f2, f3;
 
 
 void setup_default_config();
-
 guint16 crc16_modbus(guint8*, guint16);
-
 void f1_control_enable(gboolean);
-
 void f2_control_enable(gboolean);
-
 void f3_control_enable(gboolean);
-
 void set_mode(t_mode);
-
 void set_status_label(t_status_type, char*);
-
 gboolean time_handler(GtkWidget *widget);
+void set_dc_values_and_widgets();
+char* fix_float(char* str);
+gboolean validate_and_convert_dc_value(const char *str_value, gdouble *dc_value, GtkEntry *dc_entry);
 
 // todo
 /*
 
 1. GTK widgets
-    1.1. spinbuttons, dc entries actions -> check values -> copy to f
-    1.2. duty cycle entering mode(calculate on time from period)
-    1.3  functions to adjust F2 / F3 values FROM F1
+    1.1. validate_and_convert_dc_value() - css tumši sarkanu selektēto tekstu (vai melnu fontu), css atjaunošana ja VALID
+    1.2. set_dc_values_and_widgets() - dc mode - kalkulēt ON T no DC value
+    1.3. 2-phase and 3-phase mode - adjust F2 / F3 values from F1
     1.4. frequencies info labels - on period in ms, duty cycle %, period in ms (s), frequency (Hz)
     1.5. pēdējo settingu ielāde (paņemt kodu no oscope2100)
 
@@ -74,11 +62,8 @@ gboolean time_handler(GtkWidget *widget);
     2.3. eeprom save button
 
 3. debugging
-[x] 2 phase mode (automātiski rēķina delays, visus F2, diseiblo F3)
-[x] 3 phase mode (automātiski rēķina delays, visus F2, visus F3)
 
 4. uztaisīt normālus make un config
-
 
 */
 
@@ -158,24 +143,24 @@ void f1_switch_activate()
     switch (mode) {
 
         case MODE_CUSTOM:
-            f.f1_enabled = active;
+            f1.enabled = active;
             f1_control_enable(active);
             break;
 
         case MODE_2_PHASES:
-            f.f1_enabled = active;
+            f1.enabled = active;
             f1_control_enable(active);
-            f.f2_enabled = active;
+            f2.enabled = active;
             gtk_switch_set_active(GTK_SWITCH(gtk_builder_get_object(builder, "f2_switch")), active);
             break;
 
         case MODE_3_PHASES:
           printf("test 1111\n");
-            f.f1_enabled = active;
+            f1.enabled = active;
             f1_control_enable(active);
-            f.f2_enabled = active;
+            f2.enabled = active;
             gtk_switch_set_active(GTK_SWITCH(gtk_builder_get_object(builder, "f2_switch")), active);
-            f.f3_enabled = active;
+            f3.enabled = active;
             gtk_switch_set_active(GTK_SWITCH(gtk_builder_get_object(builder, "f3_switch")), active);
             break;
     }
@@ -196,13 +181,13 @@ void f2_switch_activate()
 
     if (active) {
         printf("active\n");
-        f.f2_enabled = TRUE;
+        f2.enabled = TRUE;
         if (mode == MODE_CUSTOM) {
             f2_control_enable(TRUE);
         }
     } else {
         printf("not active\n");
-        f.f2_enabled = FALSE;
+        f2.enabled = FALSE;
         if (mode == MODE_CUSTOM) {
             f2_control_enable(FALSE);
         }
@@ -219,13 +204,13 @@ void f3_switch_activate()
     gboolean active = gtk_switch_get_active(GTK_SWITCH(gtk_builder_get_object(builder, "f3_switch")));
 
     if (active) {
-        f.f3_enabled = TRUE;
+        f3.enabled = TRUE;
         if (mode == MODE_CUSTOM) {
             f3_control_enable(TRUE);
         }
     } else {
         printf("not active\n");
-        f.f3_enabled = FALSE;
+        f3.enabled = FALSE;
         if (mode == MODE_CUSTOM) {
             f3_control_enable(FALSE);
         }
@@ -237,19 +222,55 @@ void f3_switch_activate()
 // radio button ON T vs DC change
 void rb_f1_toggle()
 {
+    gboolean active;
+
     printf("rb_f1_toggle()\n");
+
+    active = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(builder, "f1_rb_dc")));
+    if (active) {
+        printf("F1 dc mode enabled\n");
+        f1.dc_mode = TRUE;
+    } else {
+        printf("F1 dc mode disabled\n");
+        f1.dc_mode = FALSE;
+    }
+    set_dc_values_and_widgets();
 }
 
 
 void rb_f2_toggle()
 {
+    gboolean active;
+
     printf("rb_f2_toggle()\n");
+
+    active = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(builder, "f2_rb_dc")));
+    if (active) {
+        printf("F2 dc mode enabled\n");
+        f2.dc_mode = TRUE;
+    } else {
+        printf("F2 dc mode disabled\n");
+        f2.dc_mode = FALSE;
+    }
+    set_dc_values_and_widgets();
 }
 
 
 void rb_f3_toggle()
 {
+    gboolean active;
+
     printf("rb_f3_toggle()\n");
+
+    active = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(builder, "f3_rb_dc")));
+    if (active) {
+        printf("F3 dc mode enabled\n");
+        f3.dc_mode = TRUE;
+    } else {
+        printf("F3 dc mode disabled\n");
+        f3.dc_mode = FALSE;
+    }
+    set_dc_values_and_widgets();
 }
 
 
@@ -295,25 +316,48 @@ void on_window_main_destroy()
 void f1_delay_adjustment_change()
 {
     printf("f1_delay_adjustment_change()\n");
-    guint16 f1_delay = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f1_delay")));
+    gint32 f1_delay = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f1_delay")));
     printf("f1 delay = %d\n", f1_delay);
 
- jāsalīdzina 0 .. 65535 katram gadījumam
-
+    if (f1_delay < 0) {
+        f1_delay = 0;
+    }
+    if (f1_delay > 65535) {
+        f1_delay = 65535;
+    }
+    f1.delay = f1_delay;
 }
 
 
 void f2_delay_adjustment_change()
 {
     printf("f2_delay_adjustment_change()\n");
-  // tests
-   //    gtk_adjustment_set_upper(GTK_ADJUSTMENT(gtk_builder_get_object(builder, "f1_delay_adjustment")), 1000);
+    gint32 f2_delay = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f2_delay")));
+    printf("f2 delay = %d\n", f2_delay);
+
+    if (f2_delay < 0) {
+        f2_delay = 0;
+    }
+    if (f2_delay > 65535) {
+        f2_delay = 65535;
+    }
+    f2.delay = f2_delay;
 }
 
 
 void f3_delay_adjustment_change()
 {
     printf("f3_delay_adjustment_change()\n");
+    gint32 f3_delay = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f3_delay")));
+    printf("f3 delay = %d\n", f3_delay);
+
+    if (f3_delay < 0) {
+        f3_delay = 0;
+    }
+    if (f3_delay > 65535) {
+        f3_delay = 65535;
+    }
+    f3.delay = f3_delay;
 }
 
 
@@ -322,26 +366,53 @@ void f1_on_adjustment_change()
 {
     printf("f1_on_adjustment_change()\n");
 
-    /*if (f1_delay >= f.f1_period) {
-        f1_delay = f.f1_period - 1;
-        if (f1_delay < 0) {
-            f1_delay = 0;
-        }
-    } else {
-        f.f1_delay = f1_delay;
-    }*/
+    gint32 f1_on = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f1_on_t")));
+    printf("f1 on = %d\n", f1_on);
+
+    if (f1_on < 1) {
+        f1_on = 1;
+    }
+    if (f1_on > (f1.period - 1)) {
+        f1_on = f1.period - 1;
+    }
+    f1.on = f1_on;
+    set_dc_values_and_widgets();
 }
 
 
 void f2_on_adjustment_change()
 {
     printf("f2_on_adjustment_change()\n");
+
+    gint32 f2_on = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f2_on_t")));
+    printf("f2 on = %d\n", f2_on);
+
+    if (f2_on < 1) {
+        f2_on = 1;
+    }
+    if (f2_on > (f2.period - 1)) {
+        f2_on = f2.period - 1;
+    }
+    f2.on = f2_on;
+    set_dc_values_and_widgets();
 }
 
 
 void f3_on_adjustment_change()
 {
     printf("f3_on_adjustment_change()\n");
+
+    gint32 f3_on = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f3_on_t")));
+    printf("f3 on = %d\n", f3_on);
+
+    if (f3_on < 1) {
+        f3_on = 1;
+    }
+    if (f3_on > (f3.period - 1)) {
+        f3_on = f3.period - 1;
+    }
+    f3.on = f3_on;
+    set_dc_values_and_widgets();
 }
 
 
@@ -349,18 +420,45 @@ void f3_on_adjustment_change()
 void f1_dc_change()
 {
     printf("f1_dc_change()\n");
+
+    GtkEntry *dc_entry = GTK_ENTRY(gtk_builder_get_object(builder, "f1_dc"));
+
+    const char *str_value = gtk_entry_get_text(dc_entry);
+    gdouble dc_value;
+    if (validate_and_convert_dc_value(str_value, &dc_value, dc_entry)) {
+        f1.dc_value = dc_value;
+        set_dc_values_and_widgets();
+    }
 }
 
 
 void f2_dc_change()
 {
     printf("f2_dc_change()\n");
+
+    GtkEntry *dc_entry = GTK_ENTRY(gtk_builder_get_object(builder, "f2_dc"));
+
+    const char *str_value = gtk_entry_get_text(dc_entry);
+    gdouble dc_value;
+    if (validate_and_convert_dc_value(str_value, &dc_value, dc_entry)) {
+        f2.dc_value = dc_value;
+        set_dc_values_and_widgets();
+    }
 }
 
 
 void f3_dc_change()
 {
     printf("f3_dc_change()\n");
+
+    GtkEntry *dc_entry = GTK_ENTRY(gtk_builder_get_object(builder, "f3_dc"));
+
+    const char *str_value = gtk_entry_get_text(dc_entry);
+    gdouble dc_value;
+    if (validate_and_convert_dc_value(str_value, &dc_value, dc_entry)) {
+        f3.dc_value = dc_value;
+        set_dc_values_and_widgets();
+    }
 }
 
 
@@ -368,18 +466,73 @@ void f3_dc_change()
 void f1_period_adjustment_change()
 {
     printf("f1_period_adjustment_change()\n");
+
+    gint32 f1_period = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f1_period")));
+    printf("f1 period = %d\n", f1_period);
+
+    if (f1_period < 2) {
+        f1_period = 2;
+    }
+    if (f1_period > 65535) {
+        f1_period = 65535;
+    }
+    f1.period = f1_period;
+
+    gtk_adjustment_set_upper(GTK_ADJUSTMENT(gtk_builder_get_object(builder, "f1_on_adjustment")), (f1.period - 1));
+    if (f1.on > (f1.period - 1)) {
+        f1.on = f1.period - 1;
+        gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f1_on_t")), f1.on);
+    }
+    set_dc_values_and_widgets();
 }
 
 
 void f2_period_adjustment_change()
 {
     printf("f2_period_adjustment_change()\n");
+
+    gint32 f2_period = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f2_period")));
+    printf("f2 period = %d\n", f2_period);
+
+    if (f2_period < 2) {
+        f2_period = 2;
+    }
+    if (f2_period > 65535) {
+        f2_period = 65535;
+    }
+    f2.period = f2_period;
+
+    gtk_adjustment_set_upper(GTK_ADJUSTMENT(gtk_builder_get_object(builder, "f2_on_adjustment")), (f2.period - 1));
+    if (f2.on > (f2.period - 1)) {
+        f2.on = f2.period - 1;
+        gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f2_on_t")), f2.on);
+    }
+    set_dc_values_and_widgets();
 }
 
 
 void f3_period_adjustment_change()
 {
     printf("f3_period_adjustment_change()\n");
+
+
+    gint32 f3_period = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f3_period")));
+    printf("f3 period = %d\n", f3_period);
+
+    if (f3_period < 2) {
+        f3_period = 2;
+    }
+    if (f3_period > 65535) {
+        f3_period = 65535;
+    }
+    f3.period = f3_period;
+
+    gtk_adjustment_set_upper(GTK_ADJUSTMENT(gtk_builder_get_object(builder, "f3_on_adjustment")), (f3.period - 1));
+    if (f3.on > (f3.period - 1)) {
+        f3.on = f3.period - 1;
+        gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f3_on_t")), f3.on);
+    }
+    set_dc_values_and_widgets();
 }
 
 
@@ -486,29 +639,90 @@ void adjust_phase_values()
 
 void set_frequencies()
 {
-    // uzseto widgetus pēc f vērtībam
-    // ...
-    adjust_phase_values(&f);
-    /*
-    f1_delay GtkSpinButton
-    f2_delay GtkSpinButton
-    f3_delay GtkSpinButton
+    adjust_phase_values(); // adjust values if 2 or 3 phase mode
 
-    f1_on_t GtkSpinButton
-    f2_on_t GtkSpinButton
-    f3_on_t GtkSpinButton
+    gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f1_delay")), f1.delay);
+    gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f2_delay")), f2.delay);
+    gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f3_delay")), f3.delay);
 
-    f1_period  GtkSpinButton
-    f2_period  GtkSpinButton
-    f3_period  GtkSpinButton
-    */
+    gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f1_on_t")), f1.on);
+    gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f2_on_t")), f2.on);
+    gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f3_on_t")), f3.on);
 
+    gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f1_period")), f1.period);
+    gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f2_period")), f2.period);
+    gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f3_period")), f3.period);
 
-
-
+    gtk_adjustment_set_upper(GTK_ADJUSTMENT(gtk_builder_get_object(builder, "f1_on_adjustment")), (f1.period - 1));
+    gtk_adjustment_set_upper(GTK_ADJUSTMENT(gtk_builder_get_object(builder, "f2_on_adjustment")), (f2.period - 1));
+    gtk_adjustment_set_upper(GTK_ADJUSTMENT(gtk_builder_get_object(builder, "f3_on_adjustment")), (f3.period - 1));
+}
 
 
+void set_dc_values_and_widgets()
+{
 
+    char dc_value_string[20];
+    // F1
+
+    if (f1.dc_mode) {
+        printf("enable dc entry\n");
+        gtk_editable_set_editable(GTK_EDITABLE(gtk_builder_get_object(builder, "f1_on_t")), FALSE);
+        gtk_editable_set_editable(GTK_EDITABLE(gtk_builder_get_object(builder, "f1_dc")), TRUE);
+        // calculate ON_T from dc value + period
+
+    } else {
+        printf("disable dc entry\n");
+        gtk_editable_set_editable(GTK_EDITABLE(gtk_builder_get_object(builder, "f1_on_t")), TRUE);
+        gtk_editable_set_editable(GTK_EDITABLE(gtk_builder_get_object(builder, "f1_dc")), FALSE);
+
+        // calculate dc value from ON_T + period
+        f1.dc_value = (100.00 * f1.on) / f1.period;
+        snprintf(dc_value_string, 10, "%.3f", f1.dc_value);
+        fix_float(dc_value_string);
+        gtk_entry_set_text(GTK_ENTRY(gtk_builder_get_object(builder, "f1_dc")), dc_value_string);
+    }
+
+    // F2
+
+    if (f2.dc_mode) {
+        printf("enable dc entry\n");
+        gtk_editable_set_editable(GTK_EDITABLE(gtk_builder_get_object(builder, "f2_on_t")), FALSE);
+        gtk_editable_set_editable(GTK_EDITABLE(gtk_builder_get_object(builder, "f2_dc")), TRUE);
+        // calculate ON_T from dc value + period
+
+    } else {
+        printf("disable dc entry\n");
+        gtk_editable_set_editable(GTK_EDITABLE(gtk_builder_get_object(builder, "f2_on_t")), TRUE);
+        gtk_editable_set_editable(GTK_EDITABLE(gtk_builder_get_object(builder, "f2_dc")), FALSE);
+
+        // calculate dc value from ON_T + period
+        f2.dc_value = (100.00 * f2.on) / f2.period;
+        snprintf(dc_value_string, 10, "%.3f", f2.dc_value);
+        fix_float(dc_value_string);
+        gtk_entry_set_text(GTK_ENTRY(gtk_builder_get_object(builder, "f2_dc")), dc_value_string);
+    }
+
+    // F3
+
+    if (f2.dc_mode) {
+        printf("enable dc entry\n");
+        gtk_editable_set_editable(GTK_EDITABLE(gtk_builder_get_object(builder, "f3_on_t")), FALSE);
+        gtk_editable_set_editable(GTK_EDITABLE(gtk_builder_get_object(builder, "f3_dc")), TRUE);
+        // calculate ON_T from dc value + period
+
+    } else {
+        printf("disable dc entry\n");
+        gtk_editable_set_editable(GTK_EDITABLE(gtk_builder_get_object(builder, "f3_on_t")), TRUE);
+        gtk_editable_set_editable(GTK_EDITABLE(gtk_builder_get_object(builder, "f3_dc")), FALSE);
+
+        // calculate dc value from ON_T + period
+        f2.dc_value = (100.00 * f3.on) / f3.period;
+        snprintf(dc_value_string, 10, "%.3f", f3.dc_value);
+        fix_float(dc_value_string);
+        gtk_entry_set_text(GTK_ENTRY(gtk_builder_get_object(builder, "f3_dc")), dc_value_string);
+
+    }
 }
 
 
@@ -516,32 +730,35 @@ void setup_default_config()
 {
     mode = MODE_CUSTOM;
 
+    f1.enabled = FALSE;
+    f1.delay = 0;
+    f1.on = 1;
+    f1.period = 100;
+    f1.dc_mode = FALSE;
 
-    f.f1_enabled = FALSE;
-    f.f1_delay = 0;
-    f.f1_on = 1;
-    f.f1_period = 100;
+    f2.enabled = FALSE;
+    f2.delay = 0;
+    f2.on = 1;
+    f2.period = 100;
+    f2.dc_mode = FALSE;
 
-    f.f2_enabled = FALSE;
-    f.f2_delay = 0;
-    f.f2_on = 1;
-    f.f2_period = 100;
+    f3.enabled = FALSE;
+    f3.delay = 0;
+    f3.on = 1;
+    f3.period = 100;
+    f3.dc_mode = FALSE;
 
-    f.f3_enabled = FALSE;
-    f.f3_delay = 0;
-    f.f3_on = 1;
-    f.f3_period = 100;
+    set_frequencies();
+    set_dc_values_and_widgets();
 
-    set_frequencies(f);
+    gtk_switch_set_active(GTK_SWITCH(gtk_builder_get_object(builder, "f1_switch")), f1.enabled);
+    f1_control_enable(f1.enabled);
 
-    gtk_switch_set_active(GTK_SWITCH(gtk_builder_get_object(builder, "f1_switch")), f.f1_enabled);
-    f1_control_enable(f.f1_enabled);
+    gtk_switch_set_active(GTK_SWITCH(gtk_builder_get_object(builder, "f2_switch")), f2.enabled);
+    f2_control_enable(f2.enabled);
 
-    gtk_switch_set_active(GTK_SWITCH(gtk_builder_get_object(builder, "f2_switch")), f.f2_enabled);
-    f2_control_enable(f.f2_enabled);
-
-    gtk_switch_set_active(GTK_SWITCH(gtk_builder_get_object(builder, "f3_switch")), f.f3_enabled);
-    f3_control_enable(f.f3_enabled);
+    gtk_switch_set_active(GTK_SWITCH(gtk_builder_get_object(builder, "f3_switch")), f3.enabled);
+    f3_control_enable(f3.enabled);
 
     set_mode(mode);
 }
@@ -618,9 +835,62 @@ gboolean time_handler(GtkWidget *widget)
     if (widget == NULL) {
         return FALSE;
     }
-   // printf("Tick\n");
+    // printf("Tick\n");
 
     // gtk_widget_queue_draw(widget);
 
     return TRUE;
+}
+
+
+char *fix_float(char* str)
+{
+    // find last char
+    char *p = str + strlen(str);
+    gboolean trim_zeros_done = FALSE;
+
+    while (--p >= str) {
+        if (*p == ',') {
+            *p = '.';
+        }
+        if (!trim_zeros_done && ((*p == '0') || (*p == '.'))) {
+            *p = 0;
+        } else {
+            trim_zeros_done = TRUE;
+        }
+    }
+    return str;
+}
+
+
+gboolean validate_and_convert_dc_value(const char *str_value, gdouble *dc_value, GtkEntry *dc_entry)
+{
+
+    *dc_value = strtod(str_value, NULL);
+
+    gboolean valid_value = ((*dc_value > 0) && (*dc_value < 100));
+
+    char *css;
+
+    if (!valid_value && strlen(str_value)) {
+        css = "* {background: #ffcccc;}";
+        printf("DC VALUE INVALID !!!\n");
+    } else {
+        css = NULL;
+        printf("DC VALUE VALID !!!\n");
+    }
+
+    // set entry background color
+    GtkStyleContext *context;
+    GtkCssProvider *provider;
+
+    context = gtk_widget_get_style_context(GTK_WIDGET(dc_entry));
+    provider = gtk_css_provider_new();
+
+    gtk_css_provider_load_from_data(provider, css, -1, NULL);
+    gtk_style_context_add_provider(context, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    g_object_unref(provider);
+
+
+    return valid_value;
 }
