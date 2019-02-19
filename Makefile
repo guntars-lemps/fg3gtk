@@ -1,5 +1,5 @@
 CFLAGS=-g -Wall -Wextra `pkg-config --cflags gtk+-3.0 gmodule-2.0`
-LDFLAGS=`pkg-config --libs gtk+-3.0` -rdynamic
+LDFLAGS=`pkg-config --libs gtk+-3.0` -rdynamic -lm
 CC=gcc
 
 OBJECTS=main.o

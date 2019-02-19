@@ -1,7 +1,8 @@
 #include <gtk/gtk.h>
 #include <string.h>
-//#include <stdio.h>
 #include <stdlib.h>
+#include <locale.h>
+#include <math.h>
 #include "fg3glade.h"
 
 //make clean && make && ./fg3gtk
@@ -49,8 +50,6 @@ gboolean validate_and_convert_dc_value(const char *str_value, gdouble *dc_value,
 /*
 
 1. GTK widgets
-    1.1. validate_and_convert_dc_value() - css tumši sarkanu selektēto tekstu (vai melnu fontu), css atjaunošana ja VALID
-    1.2. set_dc_values_and_widgets() - dc mode - kalkulēt ON T no DC value
     1.3. 2-phase and 3-phase mode - adjust F2 / F3 values from F1
     1.4. frequencies info labels - on period in ms, duty cycle %, period in ms (s), frequency (Hz)
     1.5. pēdējo settingu ielāde (paņemt kodu no oscope2100)
@@ -73,6 +72,7 @@ int main(int argc, char *argv[])
     printf("start\n");
 
     GtkWidget *window;
+
 
     gtk_init(&argc, &argv);
 
@@ -102,6 +102,7 @@ int main(int argc, char *argv[])
 
     g_timeout_add(1000, (GSourceFunc)time_handler, (gpointer)window);
 
+    setlocale(LC_NUMERIC,"C");
 
     gtk_main();
 
@@ -588,6 +589,8 @@ void set_mode(t_mode set_mode)
             gtk_widget_set_sensitive(GTK_WIDGET(gtk_builder_get_object(builder, "f3_switch")), TRUE);
             f2_control_enable(f2_active);
             f3_control_enable(f3_active);
+            // restore F1 delay upper limit to 65535
+            gtk_adjustment_set_upper(GTK_ADJUSTMENT(gtk_builder_get_object(builder, "f1_delay_adjustment")), 65535);
             break;
 
         case MODE_2_PHASES:
@@ -597,10 +600,12 @@ void set_mode(t_mode set_mode)
             gtk_widget_set_sensitive(GTK_WIDGET(gtk_builder_get_object(builder, "f1_switch")), TRUE);
             gtk_widget_set_sensitive(GTK_WIDGET(gtk_builder_get_object(builder, "f2_switch")), FALSE);
             gtk_widget_set_sensitive(GTK_WIDGET(gtk_builder_get_object(builder, "f3_switch")), FALSE);
-
             // copy F1 switch state to F2, turn off F3
             gtk_switch_set_active(GTK_SWITCH(gtk_builder_get_object(builder, "f2_switch")), f1_active);
             gtk_switch_set_active(GTK_SWITCH(gtk_builder_get_object(builder, "f3_switch")), FALSE);
+            // set F1 delay to 0
+            gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f1_delay")), 0);
+            gtk_adjustment_set_upper(GTK_ADJUSTMENT(gtk_builder_get_object(builder, "f1_delay_adjustment")), 0);
             break;
 
        case MODE_3_PHASES:
@@ -613,6 +618,9 @@ void set_mode(t_mode set_mode)
             // copy F1 switch state to F2 and F3
             gtk_switch_set_active(GTK_SWITCH(gtk_builder_get_object(builder, "f2_switch")), f1_active);
             gtk_switch_set_active(GTK_SWITCH(gtk_builder_get_object(builder, "f3_switch")), f1_active);
+            // set F1 delay to 0
+            gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f1_delay")), 0);
+            gtk_adjustment_set_upper(GTK_ADJUSTMENT(gtk_builder_get_object(builder, "f1_delay_adjustment")), 0);
             break;
     }
 }
@@ -670,7 +678,14 @@ void set_dc_values_and_widgets()
         gtk_editable_set_editable(GTK_EDITABLE(gtk_builder_get_object(builder, "f1_on_t")), FALSE);
         gtk_editable_set_editable(GTK_EDITABLE(gtk_builder_get_object(builder, "f1_dc")), TRUE);
         // calculate ON_T from dc value + period
-
+        f1.on = round(0.01 * f1.period * f1.dc_value);
+        if (f1.on < 1) {
+            f1.on = 1;
+        }
+        if (f1.on > (f1.period - 1)) {
+            f1.on = f1.period - 1;
+        }
+        gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f1_on_t")), f1.on);
     } else {
         printf("disable dc entry\n");
         gtk_editable_set_editable(GTK_EDITABLE(gtk_builder_get_object(builder, "f1_on_t")), TRUE);
@@ -690,7 +705,14 @@ void set_dc_values_and_widgets()
         gtk_editable_set_editable(GTK_EDITABLE(gtk_builder_get_object(builder, "f2_on_t")), FALSE);
         gtk_editable_set_editable(GTK_EDITABLE(gtk_builder_get_object(builder, "f2_dc")), TRUE);
         // calculate ON_T from dc value + period
-
+        f2.on = round(0.01 * f2.period * f2.dc_value);
+        if (f2.on < 1) {
+            f2.on = 1;
+        }
+        if (f2.on > (f2.period - 1)) {
+            f2.on = f2.period - 1;
+        }
+        gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f2_on_t")), f2.on);
     } else {
         printf("disable dc entry\n");
         gtk_editable_set_editable(GTK_EDITABLE(gtk_builder_get_object(builder, "f2_on_t")), TRUE);
@@ -705,19 +727,26 @@ void set_dc_values_and_widgets()
 
     // F3
 
-    if (f2.dc_mode) {
+    if (f3.dc_mode) {
         printf("enable dc entry\n");
         gtk_editable_set_editable(GTK_EDITABLE(gtk_builder_get_object(builder, "f3_on_t")), FALSE);
         gtk_editable_set_editable(GTK_EDITABLE(gtk_builder_get_object(builder, "f3_dc")), TRUE);
         // calculate ON_T from dc value + period
-
+        f3.on = round(0.01 * f3.period * f3.dc_value);
+        if (f3.on < 1) {
+            f3.on = 1;
+        }
+        if (f3.on > (f3.period - 1)) {
+            f3.on = f3.period - 1;
+        }
+        gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f3_on_t")), f3.on);
     } else {
         printf("disable dc entry\n");
         gtk_editable_set_editable(GTK_EDITABLE(gtk_builder_get_object(builder, "f3_on_t")), TRUE);
         gtk_editable_set_editable(GTK_EDITABLE(gtk_builder_get_object(builder, "f3_dc")), FALSE);
 
         // calculate dc value from ON_T + period
-        f2.dc_value = (100.00 * f3.on) / f3.period;
+        f3.dc_value = (100.00 * f3.on) / f3.period;
         snprintf(dc_value_string, 10, "%.3f", f3.dc_value);
         fix_float(dc_value_string);
         gtk_entry_set_text(GTK_ENTRY(gtk_builder_get_object(builder, "f3_dc")), dc_value_string);
@@ -847,16 +876,25 @@ char *fix_float(char* str)
 {
     // find last char
     char *p = str + strlen(str);
-    gboolean trim_zeros_done = FALSE;
+    char *point_p = p;
+
 
     while (--p >= str) {
         if (*p == ',') {
             *p = '.';
         }
-        if (!trim_zeros_done && ((*p == '0') || (*p == '.'))) {
+        if (*p == '.'){
+            point_p = p;
+        }
+    }
+
+    p = str + strlen(str);
+
+    while (--p >= point_p) {
+        if ((*p == '0') || (*p == '.')) {
             *p = 0;
         } else {
-            trim_zeros_done = TRUE;
+            break;
         }
     }
     return str;
@@ -865,32 +903,42 @@ char *fix_float(char* str)
 
 gboolean validate_and_convert_dc_value(const char *str_value, gdouble *dc_value, GtkEntry *dc_entry)
 {
+    char *str = malloc(strlen(str_value) + 1);
+    strcpy(str, str_value);
+    fix_float(str);
 
-    *dc_value = strtod(str_value, NULL);
+    char *endptr;
 
-    gboolean valid_value = ((*dc_value > 0) && (*dc_value < 100));
+    *dc_value = strtod(str, &endptr);
 
-    char *css;
+    gboolean valid_value = ((*dc_value > 0) && (*dc_value < 100) && (*endptr == 0));
+
+    free(str);
 
     if (!valid_value && strlen(str_value)) {
-        css = "* {background: #ffcccc;}";
-        printf("DC VALUE INVALID !!!\n");
+        char *css = ".invalid_bg {background: #ffcccc;} .invalid_bg:selected {background: #cc4444;}";
+        // set red background color
+        GtkStyleContext *context;
+        GtkCssProvider *provider;
+
+        context = gtk_widget_get_style_context(GTK_WIDGET(dc_entry));
+        provider = gtk_css_provider_new();
+
+        gtk_css_provider_load_from_data(provider, css, -1, NULL);
+        gtk_style_context_add_class(context, "invalid_bg");
+        gtk_style_context_add_provider(context, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+        g_object_unref(provider);
     } else {
-        css = NULL;
-        printf("DC VALUE VALID !!!\n");
+        // set default background color
+        GtkStyleContext *context;
+        GtkCssProvider *provider;
+
+        context = gtk_widget_get_style_context(GTK_WIDGET(dc_entry));
+        provider = gtk_css_provider_new();
+
+        gtk_style_context_remove_class(context, "invalid_bg");
+        g_object_unref(provider);
     }
-
-    // set entry background color
-    GtkStyleContext *context;
-    GtkCssProvider *provider;
-
-    context = gtk_widget_get_style_context(GTK_WIDGET(dc_entry));
-    provider = gtk_css_provider_new();
-
-    gtk_css_provider_load_from_data(provider, css, -1, NULL);
-    gtk_style_context_add_provider(context, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-    g_object_unref(provider);
-
 
     return valid_value;
 }
