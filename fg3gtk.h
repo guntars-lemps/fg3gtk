@@ -23,6 +23,9 @@ typedef struct
 
 
 void setup_default_config();
+void load_stored_config();
+void save_config();
+void refresh_ui();
 guint16 crc16_modbus(guint8*, guint16);
 void f1_control_enable(gboolean);
 void f2_control_enable(gboolean);
