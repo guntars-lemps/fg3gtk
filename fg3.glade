@@ -77,7 +77,7 @@
   <object class="GtkToggleAction" id="toggleaction3">
     <signal name="activate" handler="f3_switch_activate" swapped="no"/>
   </object>
-  <object class="GtkApplicationWindow" id="applicationwindow1">
+  <object class="GtkApplicationWindow" id="application_window">
     <property name="can_focus">False</property>
     <property name="halign">baseline</property>
     <property name="title" translatable="yes">FG3</property>
@@ -275,6 +275,7 @@
                                     <property name="max_width_chars">8</property>
                                     <property name="input_purpose">number</property>
                                     <signal name="changed" handler="f1_dc_change" swapped="no"/>
+                                    <signal name="focus-out-event" handler="f1_dc_focus_out" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">3</property>
@@ -390,14 +391,13 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkAccelLabel" id="accellabel1">
+                              <object class="GtkAccelLabel" id="f1_info">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="halign">baseline</property>
                                 <property name="margin_right">15</property>
                                 <property name="margin_top">5</property>
                                 <property name="margin_bottom">5</property>
-                                <property name="label" translatable="yes">F1 frequency info</property>
                                 <property name="xalign">1</property>
                                 <attributes>
                                   <attribute name="foreground" value="#105d434e74e7"/>
@@ -538,6 +538,7 @@
                                     <property name="max_width_chars">8</property>
                                     <property name="input_purpose">number</property>
                                     <signal name="changed" handler="f2_dc_change" swapped="no"/>
+                                    <signal name="focus-out-event" handler="f2_dc_focus_out" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">3</property>
@@ -652,13 +653,12 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkLabel" id="label6">
+                              <object class="GtkLabel" id="f2_info">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="margin_right">15</property>
                                 <property name="margin_top">5</property>
                                 <property name="margin_bottom">5</property>
-                                <property name="label" translatable="yes">F2 frequency info dfsggdsxgdsgdsgsdgds</property>
                                 <property name="xalign">1</property>
                                 <attributes>
                                   <attribute name="foreground" value="#105d434e74e7"/>
@@ -797,6 +797,7 @@
                                     <property name="max_width_chars">8</property>
                                     <property name="input_purpose">number</property>
                                     <signal name="changed" handler="f3_dc_change" swapped="no"/>
+                                    <signal name="focus-out-event" handler="f3_dc_focus_out" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">3</property>
@@ -911,7 +912,7 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkLabel" id="label7">
+                              <object class="GtkLabel" id="f3_info">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="halign">baseline</property>
@@ -919,7 +920,6 @@
                                 <property name="margin_right">15</property>
                                 <property name="margin_top">5</property>
                                 <property name="margin_bottom">5</property>
-                                <property name="label" translatable="yes">F3 frequency info</property>
                                 <property name="xalign">1</property>
                                 <attributes>
                                   <attribute name="foreground" value="#105d434e74e7"/>
