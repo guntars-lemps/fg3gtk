@@ -9,8 +9,6 @@ typedef enum {MODE_CUSTOM, MODE_2_PHASES, MODE_3_PHASES} t_mode;
 
 typedef enum {ST_ERROR, ST_INFO} t_status_type;
 
-t_mode mode = MODE_CUSTOM;
-
 typedef struct
 {
     gboolean enabled;

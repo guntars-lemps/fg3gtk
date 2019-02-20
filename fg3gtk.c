@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <locale.h>
 #include <math.h>
+#include <sys/stat.h>
 #include "fg3glade.h"
 #include "fg3gtk.h"
 #include "ini.h"
@@ -10,6 +11,8 @@
 //make clean && make && ./fg3gtk
 
 GtkBuilder  *builder;
+
+t_mode mode = MODE_CUSTOM;
 
 tfrequencies f1, f2, f3;
 
@@ -1082,101 +1085,15 @@ void update_info_labels()
 
 void load_stored_config()
 {
-/*  char *home = getenv("HOME");
-  defdir+="/.oscope2100";
-  struct stat st;
-  if (stat(defdir.c_str(),&st)!=0)
-  {
-    //std::cout << "Dir not exists, creating "<<std::endl;
-    mkdir (defdir.c_str(),0755);
-  }
-  std::string filename=defdir+"/last.cfg";
-  FILE *file;
-  if ((file=fopen(filename.c_str(),"a"))==NULL)
-  {
-    std::cout <<"Cannot open or create file "<<filename<<std::endl;
-    exit(1);
-  }
-  fclose(file);
-  ConfigFile config(filename);
-  //
-  int tmpint;
-  config.readInto(tmpint,"mode",int(MODE_NORMAL));
-  switch (tmpint)
-  {
-    case MODE_NORMAL:ui_mode=MODE_NORMAL;break;
-    case MODE_FZOOM:ui_mode=MODE_FZOOM;break;
-    case MODE_XY:ui_mode=MODE_XY;break;
-    default:ui_mode=MODE_NORMAL;
-  }
-  config.readInto(ui_time,"time",9);
-  if (ui_time<0) ui_time=0;
-  if (ui_time>=TCOUNT) ui_time=TCOUNT-1;
-  //
-  config.readInto(tmpint,"ch1_on",1);
-  ui_ch1_on=(tmpint!=0);
-  config.readInto(tmpint,"ch1_flip",0);
-  ui_ch1_flip=(tmpint!=0);
-  config.readInto(ui_ch1_voltage,"ch1_voltage",5);
-  if (ui_ch1_voltage<0) ui_ch1_voltage=0;
-  if (ui_ch1_voltage>=VCOUNT) ui_ch1_voltage=VCOUNT-1;
-  config.readInto(tmpint,"ch1_mode",int(CHMODE_DC));
-  switch (tmpint)
-  {
-    case CHMODE_DC:ui_ch1_mode=CHMODE_DC;break;
-    case CHMODE_AC:ui_ch1_mode=CHMODE_AC;break;
-    case CHMODE_GND:ui_ch1_mode=CHMODE_GND;break;
-    default:ui_ch1_mode=CHMODE_DC;
-  }
-  config.readInto(tmpint,"ch1_mul",int(X1));
-  switch (tmpint)
-  {
-    case X1:ui_ch1_mul=X1;break;
-    case X10:ui_ch1_mul=X10;break;
-    case X100:ui_ch1_mul=X100;break;
-    default:ui_ch1_mul=X1;
-  }
-  //
-  config.readInto(tmpint,"ch2_on",1);
-  ui_ch2_on=(tmpint!=0);
-  config.readInto(tmpint,"ch2_flip",0);
-  ui_ch2_flip=(tmpint!=0);
-  config.readInto(ui_ch2_voltage,"ch2_voltage",5);
-  if (ui_ch2_voltage<0) ui_ch2_voltage=0;
-  if (ui_ch2_voltage>=VCOUNT) ui_ch2_voltage=VCOUNT-1;
-  config.readInto(tmpint,"ch2_mode",int(CHMODE_DC));
-  switch (tmpint)
-  {
-    case CHMODE_DC:ui_ch2_mode=CHMODE_DC;break;
-    case CHMODE_AC:ui_ch2_mode=CHMODE_AC;break;
-    case CHMODE_GND:ui_ch2_mode=CHMODE_GND;break;
-    default:ui_ch2_mode=CHMODE_DC;
-  }
-  config.readInto(tmpint,"ch2_mul",int(X1));
-  switch (tmpint)
-  {
-    case X1:ui_ch2_mul=X1;break;
-    case X10:ui_ch2_mul=X10;break;
-    case X100:ui_ch2_mul=X100;break;
-    default:ui_ch2_mul=X1;
-  }
-  //
-  config.readInto(tmpint,"trigger",int(TR_OFF));
-  switch (tmpint)
-  {
-    case 0:ui_trigger=TR_OFF;break;
-    case 1:ui_trigger=TR_CH1;break;
-    case 2:ui_trigger=TR_CH2;break;
-    case 3:ui_trigger=TR_EXT;break;
-    default:ui_trigger=TR_OFF;
-  }
-  config.readInto(ui_edge,"edge",0);
-  //
-  config.readInto(tmpint,"headers",1);
-  ui_export_headers=(tmpint!=0);
-  config.readInto(tmpint,"separator",0x09);
-  ui_separator=tmpint;
-  */
+/*
+    [f1]
+    gboolean enabled = false / true
+    guint16 delay = 0 .. 65535
+    guint16 on = 0 .. 65535
+    guint16 period = 0 .. 65535
+    gboolean dc_mode = false / true
+    gdouble dc_value = 12.33536235434
+*/
 
     //[owner]
     //name = John Doe
@@ -1188,10 +1105,20 @@ void load_stored_config()
     //port = 143
     //file = "payroll.dat"
 
+    char *home_dir = getenv("HOME");
+    char *conf_dir = "/.fg3gtk";
+    char *file_name = "/fg3gtk.cfg";
+    char *path = malloc(strlen(home_dir) + strlen(conf_dir) + strlen(file_name) + 1);
+    sprintf(path,"%s%s%s", home_dir, conf_dir, file_name);
 
-    // NULL is returned if the file cannot be loaded.
-    ini_t *config = ini_load("config.ini");
+    ini_t *config = ini_load(path);
 
+    if (config == NULL) {
+        printf("Configuration file doesn't exists\n");
+        return;
+    } else {
+        printf("Configuration loaded\n");
+    }
 
     // Given a section and a key the corresponding value is returned if it exists.
     // If the section argument is NULL then all sections are searched.
@@ -1211,7 +1138,6 @@ void load_stored_config()
 
     // destroy config and invalidates all string pointers returned by the library.
     ini_free(config);
-
 }
 
 
@@ -1219,58 +1145,59 @@ void save_config()
 {
     struct stat st;
 
-mode = custom / 2phase / 3phase
+    char *home_dir = getenv("HOME");
+    char *conf_dir = "/.fg3gtk";
+    char *file_name = "/fg3gtk.cfg";
 
+    char *path;
 
-    char *home = getenv("HOME");
-  defdir+="/.oscope2100";
-  if (stat(defdir.c_str(),&st)!=0)
-  {
-    //std::cout << "Dir not exists, creating "<<std::endl;
-    mkdir (defdir.c_str(),0755);
-  }
-  //
-  std::string filename=defdir+"/last.cfg";
-  std::ofstream out(filename.c_str(), std::ios::out | std::ios::binary);
-  if (!out)
-  {
-    std::cout << "Cannot open file "<<filename<<std::endl;
-  }
-  else
-  {
-    out<<"# Do not edit, file automatically generated by 'Oscope2100' !!!"<<std::endl;
-    out<<std::endl;
-    out<<"# Time and mode settings"<<std::endl;
-    out<<"mode="<<ui_mode<<std::endl;
-    out<<"time="<<ui_time<<std::endl;
-    out<<std::endl;
-    //
-    out<<"# CH1 settings"<<std::endl;
-    out<<"ch1_on="<<ui_ch1_on<<std::endl;
-    out<<"ch1_flip="<<ui_ch1_flip<<std::endl;
-    out<<"ch1_voltage="<<ui_ch1_voltage<<std::endl;
-    out<<"ch1_mode="<<ui_ch1_mode<<std::endl;
-    out<<"ch1_mul="<<ui_ch1_mul<<std::endl;
-    out<<std::endl;
-    //
-    out<<"# CH2 settings"<<std::endl;
-    out<<"ch2_on="<<ui_ch2_on<<std::endl;
-    out<<"ch2_flip="<<ui_ch2_flip<<std::endl;
-    out<<"ch2_voltage="<<ui_ch2_voltage<<std::endl;
-    out<<"ch2_mode="<<ui_ch2_mode<<std::endl;
-    out<<"ch2_mul="<<ui_ch2_mul<<std::endl;
-    out<<std::endl;
-    //
-    out<<"# Trigger settings"<<std::endl;
-    out<<"trigger="<<ui_trigger<<std::endl;
-    out<<"edge="<<ui_edge<<std::endl;
-    out<<std::endl;
-    //
-    out<<"# Exporting settings"<<std::endl;
-    out<<"headers="<<ui_export_headers<<std::endl;
-    out<<"separator="<<int(ui_separator)<<std::endl;
-    out<<std::endl;
-    //
-    out.close();
-  }
+    path = malloc(strlen(home_dir) + strlen(conf_dir) + 1);
+    sprintf(path,"%s%s", home_dir, conf_dir);
+
+    if (stat(path, &st) != 0) {
+        // create dir if doesn't exist
+        //printf("Dir not exists, creating\n");
+        mkdir(path, 0755);
+    } else {
+        //printf("Dir already exists\n");
+    }
+
+    path = realloc(path, strlen(home_dir) + strlen(conf_dir) + strlen(file_name) + 1);
+    sprintf(path,"%s%s%s", home_dir, conf_dir, file_name);
+
+    FILE * f = fopen(path, "w");
+    free(path);
+    if (f == NULL) {
+        //printf("Cannot open file\n");
+    } else {
+        fprintf(f, "# Do not edit, file automatically generated by 'fg3gtk'\n\n");
+        // mode
+        fprintf(f, "mode = %s\n\n", ((mode == MODE_CUSTOM) ? "custom" : ((mode == MODE_2_PHASES) ? "2phase" : "3phase")));
+        // f1
+        fprintf(f, "[f1]\n");
+        fprintf(f, "enabled = %s\n", (f1.enabled ? "true" : "false"));
+        fprintf(f, "delay = %d\n", f1.delay);
+        fprintf(f, "on = %d\n", f1.on);
+        fprintf(f, "period = %d\n", f1.period);
+        fprintf(f, "dc_mode = %s\n", (f1.dc_mode ? "true" : "false"));
+        fprintf(f, "dc_value = %f\n", f1.dc_value);
+        // f2
+        fprintf(f, "\n[f2]\n");
+        fprintf(f, "enabled = %s\n", (f2.enabled ? "true" : "false"));
+        fprintf(f, "delay = %d\n", f2.delay);
+        fprintf(f, "on = %d\n", f2.on);
+        fprintf(f, "period = %d\n", f2.period);
+        fprintf(f, "dc_mode = %s\n", (f2.dc_mode ? "true" : "false"));
+        fprintf(f, "dc_value = %f\n", f2.dc_value);
+        // f3
+        fprintf(f, "\n[f3]\n");
+        fprintf(f, "enabled = %s\n", (f3.enabled ? "true" : "false"));
+        fprintf(f, "delay = %d\n", f3.delay);
+        fprintf(f, "on = %d\n", f3.on);
+        fprintf(f, "period = %d\n", f3.period);
+        fprintf(f, "dc_mode = %s\n", (f3.dc_mode ? "true" : "false"));
+        fprintf(f, "dc_value = %f\n", f3.dc_value);
+
+        fclose (f);
+    }
 }
