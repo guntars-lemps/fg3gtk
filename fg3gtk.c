@@ -10,7 +10,7 @@
 
 //make clean && make && ./fg3gtk
 
-GtkBuilder  *builder;
+GtkBuilder *builder;
 
 t_mode mode = MODE_CUSTOM;
 
@@ -19,17 +19,15 @@ tfrequencies f1, f2, f3;
 // todo
 /*
 
-1. config store on close, load on startup
-
-2. rs-232 komunikācijas (paņemt kodu no RPM mērītaja)
-    2.1. device pong ping when disconnected - timer_handle() funkcijā
+1. rs-232 komunikācijas (paņemt kodu no RPM mērītaja)
+    2.1. device selection
+    2.2. device ping-pong when disconnected - timer_handle() funkcijā
          *** startējot sūta ping-pong komandu kamēr saņem atbildi !!! vai arī pēc tty errora (kamēr ir diskonektēts)
-    2.2. send on button, auto send
-    2.3. eeprom save button
+    2.3. send on button
+    2.4. auto send
+    2.5. eeprom save button
 
-3. debugging
-
-4. uztaisīt normālus make un config
+2. uztaisīt normālus make un config
 
 */
 
@@ -60,17 +58,16 @@ int main(int argc, char *argv[])
     gtk_style_context_add_provider(context, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
     g_object_unref(provider);
 
+    setlocale(LC_NUMERIC,"C");
+
     setup_default_config();
-
     load_stored_config();
-
     refresh_ui();
 
     set_status_label(ST_ERROR, "DISCONNECTED");
 
     g_timeout_add(1000, (GSourceFunc)time_handler, (gpointer)window);
 
-    setlocale(LC_NUMERIC,"C");
 
     gtk_main();
 
@@ -125,7 +122,6 @@ void f1_switch_activate()
             break;
 
         case MODE_3_PHASES:
-          printf("test 1111\n");
             f1.enabled = active;
             f1_control_enable(active);
             f2.enabled = active;
@@ -770,11 +766,12 @@ void setup_default_config()
 
 void refresh_ui()
 {
-    set_mode(mode);
+    char dc_value_str[20];
 
     set_frequencies();
     set_dc_values_and_widgets();
 
+    // switches
     gtk_switch_set_active(GTK_SWITCH(gtk_builder_get_object(builder, "f1_switch")), f1.enabled);
     f1_control_enable(f1.enabled);
 
@@ -783,6 +780,50 @@ void refresh_ui()
 
     gtk_switch_set_active(GTK_SWITCH(gtk_builder_get_object(builder, "f3_switch")), f3.enabled);
     f3_control_enable(f3.enabled);
+
+    // f1 dc mode and value
+    if (f1.dc_mode) {
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(builder, "f1_rb_dc")), TRUE);
+        snprintf(dc_value_str, 20, "%.3f", f1.dc_value);
+        fix_float(dc_value_str);
+        gtk_entry_set_text(GTK_ENTRY(gtk_builder_get_object(builder, "f1_dc")), dc_value_str);
+    } else {
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(builder, "f1_rb_period")), TRUE);
+    }
+
+    // f2 dc mode and value
+    if (f2.dc_mode) {
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(builder, "f2_rb_dc")), TRUE);
+        snprintf(dc_value_str, 20, "%.3f", f2.dc_value);
+        fix_float(dc_value_str);
+        gtk_entry_set_text(GTK_ENTRY(gtk_builder_get_object(builder, "f2_dc")), dc_value_str);
+    } else {
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(builder, "f2_rb_period")), TRUE);
+    }
+
+    // f3 dc mode and value
+    if (f3.dc_mode) {
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(builder, "f3_rb_dc")), TRUE);
+        snprintf(dc_value_str, 20, "%.3f", f3.dc_value);
+        fix_float(dc_value_str);
+        gtk_entry_set_text(GTK_ENTRY(gtk_builder_get_object(builder, "f3_dc")), dc_value_str);
+    } else {
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(builder, "f3_rb_period")), TRUE);
+    }
+
+
+    // mode
+    if (mode == MODE_CUSTOM) {
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(builder, "rb_custom_mode")), TRUE);
+    }
+    if (mode == MODE_2_PHASES) {
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(builder, "rb_2_phase_mode")), TRUE);
+    }
+    if (mode == MODE_3_PHASES) {
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(builder, "rb_3_phase_mode")), TRUE);
+    }
+
+    set_mode(mode);
 
     update_info_labels();
 }
@@ -1085,26 +1126,6 @@ void update_info_labels()
 
 void load_stored_config()
 {
-/*
-    [f1]
-    gboolean enabled = false / true
-    guint16 delay = 0 .. 65535
-    guint16 on = 0 .. 65535
-    guint16 period = 0 .. 65535
-    gboolean dc_mode = false / true
-    gdouble dc_value = 12.33536235434
-*/
-
-    //[owner]
-    //name = John Doe
-    //organization = Acme Widgets Inc.
-
-    //[database]
-    //; use IP address in case network name resolution is not working
-    //server = 192.0.2.62
-    //port = 143
-    //file = "payroll.dat"
-
     char *home_dir = getenv("HOME");
     char *conf_dir = "/.fg3gtk";
     char *file_name = "/fg3gtk.cfg";
@@ -1114,30 +1135,93 @@ void load_stored_config()
     ini_t *config = ini_load(path);
 
     if (config == NULL) {
-        printf("Configuration file doesn't exists\n");
         return;
     } else {
-        printf("Configuration loaded\n");
+        // mode
+        const char *mode_str = ini_get(config, NULL, "mode");
+        if (mode_str) {
+            if (!strcmp(mode_str, "custom")) {
+                mode = MODE_CUSTOM;
+            }
+            if (!strcmp(mode_str, "2phase")) {
+                mode = MODE_2_PHASES;
+            }
+            if (!strcmp(mode_str, "3phase")) {
+                mode = MODE_3_PHASES;
+            }
+        }
+        // f1
+        const char *f1_enabled_str = ini_get(config, "f1", "enabled");
+        if (f1_enabled_str) {
+            if (!strcmp(f1_enabled_str, "true")) {
+                f1.enabled = TRUE;
+            } else {
+                f1.enabled = FALSE;
+            }
+        }
+        ini_sget(config, "f1", "delay", "%d", &f1.delay);
+        ini_sget(config, "f1", "on", "%d", &f1.on);
+        ini_sget(config, "f1", "period", "%d", &f1.period);
+        const char *f1_dc_mdoe_str = ini_get(config, "f1", "dc_mode");
+        if (f1_dc_mdoe_str) {
+            if (!strcmp(f1_dc_mdoe_str, "true")) {
+                f1.dc_mode = TRUE;
+            } else {
+                f1.dc_mode = FALSE;
+            }
+        }
+        double f1_dc_value;
+        ini_sget(config, "f1", "dc_value", "%lf", &f1_dc_value);
+        f1.dc_value = f1_dc_value;
+        // f2
+        const char *f2_enabled_str = ini_get(config, "f2", "enabled");
+        if (f2_enabled_str) {
+            if (!strcmp(f2_enabled_str, "true")) {
+                f2.enabled = TRUE;
+            } else {
+                f2.enabled = FALSE;
+            }
+        }
+        ini_sget(config, "f2", "delay", "%d", &f2.delay);
+        ini_sget(config, "f2", "on", "%d", &f2.on);
+        ini_sget(config, "f2", "period", "%d", &f2.period);
+        const char *f2_dc_mdoe_str = ini_get(config, "f2", "dc_mode");
+        if (f2_dc_mdoe_str) {
+            if (!strcmp(f2_dc_mdoe_str, "true")) {
+                f2.dc_mode = TRUE;
+            } else {
+                f2.dc_mode = FALSE;
+            }
+        }
+        double f2_dc_value;
+        ini_sget(config, "f2", "dc_value", "%lf", &f2_dc_value);
+        f2.dc_value = f2_dc_value;
+        // f3
+        const char *f3_enabled_str = ini_get(config, "f3", "enabled");
+        if (f3_enabled_str) {
+            if (!strcmp(f3_enabled_str, "true")) {
+                f3.enabled = TRUE;
+            } else {
+                f3.enabled = FALSE;
+            }
+        }
+        ini_sget(config, "f3", "delay", "%d", &f3.delay);
+        ini_sget(config, "f3", "on", "%d", &f3.on);
+        ini_sget(config, "f3", "period", "%d", &f3.period);
+        const char *f3_dc_mdoe_str = ini_get(config, "f3", "dc_mode");
+        if (f3_dc_mdoe_str) {
+            if (!strcmp(f3_dc_mdoe_str, "true")) {
+                f3.dc_mode = TRUE;
+            } else {
+                f3.dc_mode = FALSE;
+            }
+        }
+        double f3_dc_value;
+        ini_sget(config, "f3", "dc_value", "%lf", &f3_dc_value);
+        f3.dc_value = f3_dc_value;
+
+        ini_free(config);
     }
-
-    // Given a section and a key the corresponding value is returned if it exists.
-    // If the section argument is NULL then all sections are searched.
-    const char *name = ini_get(config, "owner", "name");
-    if (name) {
-        printf("name: %s\n", name);
-    }
-
-
-    // takes the same arguments as ini_get() with the addition of a
-    // scanf format string and a pointer for where to store the value.
-    const char *server = "default";
-    int port = 80;
-
-    ini_sget(config, "database", "server", NULL, &server);
-    ini_sget(config, "database", "port", "%d", &port);
-
-    // destroy config and invalidates all string pointers returned by the library.
-    ini_free(config);
 }
 
 
@@ -1156,10 +1240,7 @@ void save_config()
 
     if (stat(path, &st) != 0) {
         // create dir if doesn't exist
-        //printf("Dir not exists, creating\n");
         mkdir(path, 0755);
-    } else {
-        //printf("Dir already exists\n");
     }
 
     path = realloc(path, strlen(home_dir) + strlen(conf_dir) + strlen(file_name) + 1);
@@ -1167,9 +1248,7 @@ void save_config()
 
     FILE * f = fopen(path, "w");
     free(path);
-    if (f == NULL) {
-        //printf("Cannot open file\n");
-    } else {
+    if (f != NULL) {
         fprintf(f, "# Do not edit, file automatically generated by 'fg3gtk'\n\n");
         // mode
         fprintf(f, "mode = %s\n\n", ((mode == MODE_CUSTOM) ? "custom" : ((mode == MODE_2_PHASES) ? "2phase" : "3phase")));
