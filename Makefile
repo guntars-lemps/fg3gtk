@@ -2,7 +2,7 @@ CFLAGS=-g -Wall -Wextra `pkg-config --cflags gtk+-3.0 gmodule-2.0`
 LDFLAGS=`pkg-config --libs gtk+-3.0` -rdynamic -lm
 CC=gcc
 
-OBJECTS=fg3gtk.o ini.o
+OBJECTS=fg3gtk.o ini.o serial.o serial_lib.o
 
 
 fg3gtk: fg3glade.h $(OBJECTS)

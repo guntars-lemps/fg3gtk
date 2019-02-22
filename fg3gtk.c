@@ -7,6 +7,7 @@
 #include "fg3glade.h"
 #include "fg3gtk.h"
 #include "ini.h"
+#include "serial_lib.h"
 
 //make clean && make && ./fg3gtk
 
@@ -20,12 +21,22 @@ tfrequencies f1, f2, f3;
 /*
 
 1. rs-232 komunikācijas (paņemt kodu no RPM mērītaja)
-    2.1. device selection
-    2.2. device ping-pong when disconnected - timer_handle() funkcijā
+    1.1. device selection
+    1.2. device ping-pong when disconnected - timer_handle() funkcijā
          *** startējot sūta ping-pong komandu kamēr saņem atbildi !!! vai arī pēc tty errora (kamēr ir diskonektēts)
-    2.3. send on button
-    2.4. auto send
-    2.5. eeprom save button
+        1.2.1 send buffer funkcija (pieliek crc) - izsūta un diseiblo 3 sūtīšanas widgetus
+              parāda "SENDING"
+        1.2.2 receive funkcija -
+           **** ja iestājas taimauts uz receive tad DISCONNECTED, eneiblo pogas, sāk ping-pong
+           ja saņem BAD - tad parāda ERROR, eneiblo pogas
+           ja saņem OK - tad parāda DONE, eneiblo pogas
+           ja saņem EEPROM ERROR tad parāda, eneiblo pogas
+        1.2.3 ti
+
+
+    1.3. send on button
+    1.4. auto send
+    1.5. eeprom save button
 
 2. uztaisīt normālus make un config
 
@@ -68,6 +79,15 @@ int main(int argc, char *argv[])
 
     g_timeout_add(1000, (GSourceFunc)time_handler, (gpointer)window);
 
+
+    char buff[1000];
+    char *iterator = buff;
+    int n;
+    PSerLib_getAvailablePorts(buff, sizeof(buff), &n);
+    printf("found %i devices:\n", n);
+    for (; *iterator; iterator += strlen(iterator) + 1) {
+        printf("%s\n", iterator);
+    }
 
     gtk_main();
 
