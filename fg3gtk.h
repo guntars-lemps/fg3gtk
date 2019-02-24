@@ -9,6 +9,8 @@ typedef enum {MODE_CUSTOM, MODE_2_PHASES, MODE_3_PHASES} t_mode;
 
 typedef enum {ST_ERROR, ST_INFO} t_status_type;
 
+typedef enum {NOT_SELECTED, DEVICE_ERROR, DISCONNECTED, CONNECTED} t_device_status;
+
 typedef struct
 {
     gboolean enabled;
@@ -37,6 +39,7 @@ gboolean validate_and_convert_dc_value(const char *str_value, gdouble *dc_value,
 void set_values_for_phase_mode();
 char *val2str(gdouble x, const char *unit);
 void update_info_labels();
+void update_devices_list();
 
 
 #endif

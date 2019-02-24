@@ -295,19 +295,40 @@ PSL_ErrorCodes_e PSerLib_close(PSerLibHandle_t *io_portH)
 }
 
 
-PSL_ErrorCodes_e PSerLib_getAvailablePorts(char* o_names, int i_maxlen, int *o_numPortsFound)
+// Defining comparator function as per the requirement
+static int myCompare(const void* a, const void* b)
+{
+    // setting up rules for comparison
+    if (strlen(*(const char**)a) != strlen(*(const char**)b)) {
+        return strlen(*(const char**)a) - strlen(*(const char**)b);
+    }
+    return strcmp(*(const char**)a, *(const char**)b);
+}
+
+
+// Function to sort the array
+void sort(char *arr[], int n)
+{
+    // calling qsort function to sort the array
+    // with the help of Comparator
+    qsort(arr, n, sizeof(char*), myCompare);
+}
+
+
+
+PSL_ErrorCodes_e PSerLib_getAvailablePorts(char **(*o_names), int *o_numPortsFound)
 {
 
   // pielikt /proc/tty/driver/serial pārbaudi
+
     int wasEof;
     FILE *procfile;
     DIR *dir;
     PSL_ErrorCodes_e result = PSL_ERROR_none;
-    *o_names= '\0';
-    --i_maxlen; // reserve one for additional nul-Character
-    if (o_numPortsFound) {
-        *o_numPortsFound = 0;
-    }
+
+    *o_names = NULL;
+
+    *o_numPortsFound = 0;
 
     procfile = fopen("/proc/tty/drivers", "r");
     if (procfile == NULL) {
@@ -320,6 +341,7 @@ PSL_ErrorCodes_e PSerLib_getAvailablePorts(char* o_names, int i_maxlen, int *o_n
     }
 
     char lineBuffer[200];
+    printf("Test 1\n");
     while (fgets(lineBuffer, sizeof(lineBuffer), procfile)) {
         if (strstr(lineBuffer, " serial\n") != NULL) { // seems to be a serial device
             char *sp;
@@ -331,32 +353,34 @@ PSL_ErrorCodes_e PSerLib_getAvailablePorts(char* o_names, int i_maxlen, int *o_n
                     struct dirent *entry;
                     *sp = '\0'; // now we hava a device base name in deviceName
                     rewinddir(dir);
+                    //printf("Test 2\n");
                     while ((entry = readdir(dir)) != NULL) {
-                        if (strstr(entry->d_name, deviceName)) {
-                            int len = strlen(entry->d_name);
-
-                            len += 5;
-
-                            if (i_maxlen > len) {
-                                sprintf(o_names, "/dev/""%s", entry->d_name);
-                                i_maxlen -= len + 1;
-                                o_names += len + 1;
-                                if (o_numPortsFound) {
-                                    ++(*o_numPortsFound);
-                                }
-                            } else {
-                                result = PSL_ERROR_bufferToSmall;
-                            }
+                        //printf("Test 3\n");
+                        if (strstr(entry->d_name, deviceName)) { // meklē deviceName iekšā stringā entry->d_name, if atrod tad...
+                            //printf("Test 4 reallocate now %ld bytes\n", 200);//sizeof(char*) * ((*o_numPortsFound) + 1));
+                            *o_names = realloc(*o_names, sizeof(char*) * ((*o_numPortsFound) + 1));
+                            //printf("*o_names = %p\n", *o_names);
+                            //printf("Test 5 entry->d_name = %s\n", entry->d_name);
+                            //printf("Test 5 *o_numPortsFound = %d\n", *o_numPortsFound);
+                            (*o_names)[(*o_numPortsFound)] = malloc(sizeof(char) * (strlen(entry->d_name) + 6));
+                            //printf("Test 6\n");
+                            printf("New device found Nr. %d = ""/dev/%s""\n", *o_numPortsFound + 1, entry->d_name);
+                            sprintf((*o_names)[(*o_numPortsFound)], "/dev/%s", entry->d_name);
+                            //printf("Test 7\n");
+                            (*o_numPortsFound)++;
                         }
                     }
                 }
             }
         }
     }
+    printf("Test 8\n");
     wasEof = feof(procfile);
     closedir(dir);
     fclose(procfile);
-    *o_names = '\0';
+
+    sort(*o_names, *o_numPortsFound);
+
     if (!wasEof) { // --> error occurred
         return PSL_ERROR_couldNotReadProcTtyFile;
     }

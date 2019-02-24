@@ -17,28 +17,35 @@ t_mode mode = MODE_CUSTOM;
 
 tfrequencies f1, f2, f3;
 
+t_device_status device_status = NOT_SELECTED; // typedef enum {NOT_SELECTED, DEVICE_ERROR, DISCONNECTED, CONNECTED} t_device_status;
+
 // todo
 /*
 
-1. rs-232 komunikācijas (paņemt kodu no RPM mērītaja)
-    1.1. device selection
-    1.2. device ping-pong when disconnected - timer_handle() funkcijā
-         *** startējot sūta ping-pong komandu kamēr saņem atbildi !!! vai arī pēc tty errora (kamēr ir diskonektēts)
-        1.2.1 send buffer funkcija (pieliek crc) - izsūta un diseiblo 3 sūtīšanas widgetus
-              parāda "SENDING"
-        1.2.2 receive funkcija -
-           **** ja iestājas taimauts uz receive tad DISCONNECTED, eneiblo pogas, sāk ping-pong
-           ja saņem BAD - tad parāda ERROR, eneiblo pogas
-           ja saņem OK - tad parāda DONE, eneiblo pogas
-           ja saņem EEPROM ERROR tad parāda, eneiblo pogas
-        1.2.3 ti
+1. device selection, load config, save config
+
+2. timer funckija - device ping-pong when disconnected - timer_handle() funkcijā
+           *** startējot sūta ping-pong komandu kamēr saņem atbildi !!! vai arī pēc tty errora (kamēr ir diskonektēts)
+
+3. send buffer funkcija (pieliek crc) - izsūta un diseiblo 3 sūtīšanas widgetus
+     parāda "SENDING" - izņemot ping-pong !!!!
+
+4. receive funkcija -
+      **** ja iestājas taimauts uz receive tad DISCONNECTED, eneiblo pogas, sāk ping-pong
+      ja saņem BAD - tad parāda ERROR, eneiblo pogas
+      ja saņem OK - tad parāda DONE, eneiblo pogas
+      ja saņem EEPROM ERROR tad parāda, eneiblo pogas
+
+5. Pēc tam - izsviest liekos ttyS[N]
+       vajag saprast vai var atvērt device bez root tiesībām ?
+       varētu izmantot /proc/tty/driver/serial bet vajag root !!!
 
 
-    1.3. send on button
-    1.4. auto send
-    1.5. eeprom save button
+6. send on button
+7. auto send
+8. eeprom save button
 
-2. uztaisīt normālus make un config
+9. uztaisīt normālus make un config
 
 */
 
@@ -79,15 +86,9 @@ int main(int argc, char *argv[])
 
     g_timeout_add(1000, (GSourceFunc)time_handler, (gpointer)window);
 
+    update_devices_list();
 
-    char buff[1000];
-    char *iterator = buff;
-    int n;
-    PSerLib_getAvailablePorts(buff, sizeof(buff), &n);
-    printf("found %i devices:\n", n);
-    for (; *iterator; iterator += strlen(iterator) + 1) {
-        printf("%s\n", iterator);
-    }
+    device_status = NOT_SELECTED;
 
     gtk_main();
 
@@ -115,9 +116,9 @@ void cb_auto_send_toggle()
 }
 
 
-void select_device_change()
+void serial_device_change()
 {
-    printf("select_device_changed()\n");
+    printf("serial_device_change()\n");
 }
 
 
@@ -919,7 +920,9 @@ gboolean time_handler(GtkWidget *widget)
     if (widget == NULL) {
         return FALSE;
     }
-    // printf("Tick\n");
+    printf("Tick\n");
+
+    update_devices_list();
 
     // gtk_widget_queue_draw(widget);
 
@@ -1299,4 +1302,54 @@ void save_config()
 
         fclose (f);
     }
+}
+
+
+void update_devices_list()
+{
+    printf("update_devices_list()\n");
+
+    char **devices;
+    int n;
+
+    PSerLib_getAvailablePorts(&devices, &n);
+
+    printf("found %i devices:\n", n);
+
+    // check if device list is changed
+
+    gboolean changed = FALSE;
+
+    GtkTreeModel *m = gtk_combo_box_get_model(GTK_COMBO_BOX(gtk_builder_get_object(builder, "device_list")));
+
+    gint rows = gtk_tree_model_iter_n_children(m, NULL);
+
+    printf("rows = %d n= %d\n", rows, n);
+
+    if (rows != n) {
+        // if count differ then definitely there is something changed
+        changed = TRUE;
+    } else {
+        // compare each device
+        for (int i = 0; i < n; i++) {
+
+            // --------------->        gtkcomboboxtext gtk_tree_model_get_iter_first
+
+        // printf("%s\n", devices[i]);
+    //    if (!strcmp(devices[i], ... )) {
+    //        changed = TRUE;
+    //        break;
+        }
+    }
+    // if changed then remove all items and add new ones
+    if (changed) {
+        gtk_combo_box_text_remove_all(GTK_COMBO_BOX_TEXT(gtk_builder_get_object(builder, "device_list")));
+
+        for (int i = 0; i < n; i++) {
+            //printf("%s\n", devices[i]);
+
+            gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(gtk_builder_get_object(builder, "device_list")), (const char*)&i, devices[i]);
+        }
+    }
+
 }

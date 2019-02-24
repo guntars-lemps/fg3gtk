@@ -166,7 +166,7 @@ const char *PSerLib_getErrorMessage(PSL_ErrorCodes_e i_errorCode);
 \endcode
  * @ingroup PortUtility
  */
-PSL_ErrorCodes_e PSerLib_getAvailablePorts(char* o_names, int i_maxlen, int* o_numPortsFound);
+PSL_ErrorCodes_e PSerLib_getAvailablePorts(char **(*o_names), int* o_numPortsFound);
 
 /**
  * tries to open the specified serial port
