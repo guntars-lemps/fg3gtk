@@ -3,6 +3,7 @@
 
 #define MCU_FREQUENCY        16000000
 #define MCU_CLOCKS_PER_LOOP        21
+#define TTY_BAUD_RATE           19200
 
 
 typedef enum {MODE_CUSTOM, MODE_2_PHASES, MODE_3_PHASES} t_mode;

@@ -318,8 +318,7 @@ void sort(char *arr[], int n)
 
 PSL_ErrorCodes_e PSerLib_getAvailablePorts(char **(*o_names), int *o_numPortsFound)
 {
-
-  // pielikt /proc/tty/driver/serial pārbaudi
+    // pielikt /proc/tty/driver/serial pārbaudi
 
     int wasEof;
     FILE *procfile;
@@ -341,7 +340,7 @@ PSL_ErrorCodes_e PSerLib_getAvailablePorts(char **(*o_names), int *o_numPortsFou
     }
 
     char lineBuffer[200];
-    printf("Test 1\n");
+
     while (fgets(lineBuffer, sizeof(lineBuffer), procfile)) {
         if (strstr(lineBuffer, " serial\n") != NULL) { // seems to be a serial device
             char *sp;
@@ -353,20 +352,12 @@ PSL_ErrorCodes_e PSerLib_getAvailablePorts(char **(*o_names), int *o_numPortsFou
                     struct dirent *entry;
                     *sp = '\0'; // now we hava a device base name in deviceName
                     rewinddir(dir);
-                    //printf("Test 2\n");
                     while ((entry = readdir(dir)) != NULL) {
-                        //printf("Test 3\n");
-                        if (strstr(entry->d_name, deviceName)) { // meklē deviceName iekšā stringā entry->d_name, if atrod tad...
-                            //printf("Test 4 reallocate now %ld bytes\n", 200);//sizeof(char*) * ((*o_numPortsFound) + 1));
+                        if (strstr(entry->d_name, deviceName)) {
                             *o_names = realloc(*o_names, sizeof(char*) * ((*o_numPortsFound) + 1));
-                            //printf("*o_names = %p\n", *o_names);
-                            //printf("Test 5 entry->d_name = %s\n", entry->d_name);
-                            //printf("Test 5 *o_numPortsFound = %d\n", *o_numPortsFound);
                             (*o_names)[(*o_numPortsFound)] = malloc(sizeof(char) * (strlen(entry->d_name) + 6));
-                            //printf("Test 6\n");
-                            printf("New device found Nr. %d = ""/dev/%s""\n", *o_numPortsFound + 1, entry->d_name);
+                        ///    printf("New device found Nr. %d = ""/dev/%s""\n", *o_numPortsFound + 1, entry->d_name);
                             sprintf((*o_names)[(*o_numPortsFound)], "/dev/%s", entry->d_name);
-                            //printf("Test 7\n");
                             (*o_numPortsFound)++;
                         }
                     }
@@ -374,7 +365,14 @@ PSL_ErrorCodes_e PSerLib_getAvailablePorts(char **(*o_names), int *o_numPortsFou
             }
         }
     }
-    printf("Test 8\n");
+    // for device attaching / detaching testing
+    // if (rand() > (RAND_MAX / 2))
+    {
+        *o_names = realloc(*o_names, sizeof(char*) * ((*o_numPortsFound) + 1));
+        (*o_names)[(*o_numPortsFound)] = malloc(sizeof(char) * (strlen("/dev/test") + 100));
+        sprintf((*o_names)[(*o_numPortsFound)], "%s%d", "/dev/test", rand());
+        (*o_numPortsFound)++;
+    }
     wasEof = feof(procfile);
     closedir(dir);
     fclose(procfile);
