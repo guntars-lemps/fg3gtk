@@ -23,16 +23,16 @@ gboolean ignore_device_change = FALSE;
 
 gchar *serial_device = NULL;
 
+PSerLibHandle_t serial_device_handle = NULL;
+
 // todo
 /*
 
-1. serial device initialization
-
-2. timer handler funckijā -
+1. timer handler funkcijā -
     * ja iestājas taimauts uz ping vai citu komandu - tad DISCONNECTED
     * ja DISCONNECTED tad sūta ping
 
-3. receive handlers -
+2. receive handlers - vēl viens taimers (0.1s) ???
     * ja saņem jebkādu atbildi (ne tikai pong) tad CONNECTED
     * ja CRC error tad statusu DEVICE_ERROR, bet ping pongu nesūtam!
     * ja nav disconnected tad eneiblo pogas
@@ -40,17 +40,17 @@ gchar *serial_device = NULL;
     * ja saņem OK - tad parāda DONE, eneiblo pogas
     * ja saņem EEPROM ERROR tad parāda, eneiblo pogas
 
-4. send pogas funkcijas (pieliek crc) -
+3. send pogas funkcijas (pieliek crc) -
     * izsūta un diseiblo pogas
     * parāda "SENDING"
 
-5. Pēc tam - izsviest liekos ttyS[N]
-    vajag saprast vai var atvērt device bez root tiesībām ?
-    varētu izmantot /proc/tty/driver/serial bet vajag root !!!
+4. Pēc tam - izsviest liekos ttyS[N]
+   varētu izmantot /proc/tty/driver/serial bet vajag root !!!
+   kā bez root tiesībām noteikt reālās serial devices ????
 
-6. auto send chackbox
+5. auto send checkbox
 
-7. uztaisīt normālus make un config
+6. uztaisīt normālus make un config
 
 
 */
@@ -103,6 +103,8 @@ int main(int argc, char *argv[])
 
     save_config();
 
+    PSerLib_close(&serial_device_handle);
+
     return 0;
 }
 
@@ -128,15 +130,32 @@ void cb_auto_send_toggle()
 void serial_device_change()
 {
     if (!ignore_device_change) {
-        printf("serial_device_change()\n");
-        // TTY_BAUD_RATE 19200
-        // inicializēt device
-        // ...
-        free(serial_device);
-        serial_device = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(gtk_builder_get_object(builder, "device_list")));
+        gchar *new_serial_device = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(gtk_builder_get_object(builder, "device_list")));
+        printf("[1] serial_device = %s, new_serial_device = %s\n", serial_device, new_serial_device);
+        if (serial_device != NULL) {
+            g_free(serial_device);
+        }
+        serial_device = new_serial_device;
+        printf("Serial device changed to %s\n", serial_device);
+        if (serial_device == NULL) {
+            device_status = NOT_SELECTED;
+            set_status_label(ST_ERROR, "NOT SELECTED");
+        } else {
+            device_status = DISCONNECTED;
+            set_status_label(ST_ERROR, "DISCONNECTED");
 
-        device_status = DISCONNECTED;
-        set_status_label(ST_ERROR, "DISCONNECTED");
+            printf("[2] Initialize device\n");
+
+            PSerLib_close(&serial_device_handle);
+            PSL_ErrorCodes_e error = PSerLib_open(serial_device, &serial_device_handle);
+            if (error) {
+                printf("Serial device error: %s\n", PSerLib_getErrorMessage(error));
+                device_status = DEVICE_ERROR;
+                set_status_label(ST_ERROR, "DEVICE ERROR");
+            } else {
+                PSerLib_setParams(serial_device_handle, PSL_BR_19200, PSL_DB_8, PSL_P_none, PSL_SB_1, PSL_FC_none);
+            }
+        }
     }
 }
 
@@ -1383,7 +1402,7 @@ void update_devices_list()
     }
     // if changed then remove all items and add new ones
     if (changed) {
-        printf("[1]\n");
+
 
         //gchar *active_device_text = gtk_combo_box_text_get_active_text(cb);
         //printf("active_device_text = %s\n", ((active_device_text == NULL) ? "NULL" : active_device_text));
@@ -1391,7 +1410,7 @@ void update_devices_list()
         ignore_device_change = TRUE;
         gtk_combo_box_text_remove_all(cb);
         ignore_device_change = FALSE;
-        printf("[2]\n");
+
         gboolean device_found = FALSE;
         for (int i = 0; i < n; i++) {
      //     printf("Adding to combobox %s\n", devices[i]);
@@ -1405,8 +1424,9 @@ void update_devices_list()
         if (!device_found) {
             device_status = NOT_SELECTED;
             set_status_label(ST_ERROR, "NOT SELECTED");
+            PSerLib_close(&serial_device_handle);
         }
-        printf("[3]\n");
+
         //g_free(active_device_text);
     }
 }

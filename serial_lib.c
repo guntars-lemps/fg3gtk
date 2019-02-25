@@ -367,12 +367,12 @@ PSL_ErrorCodes_e PSerLib_getAvailablePorts(char **(*o_names), int *o_numPortsFou
     }
     // for device attaching / detaching testing
     // if (rand() > (RAND_MAX / 2))
-    {
-        *o_names = realloc(*o_names, sizeof(char*) * ((*o_numPortsFound) + 1));
-        (*o_names)[(*o_numPortsFound)] = malloc(sizeof(char) * (strlen("/dev/test") + 100));
-        sprintf((*o_names)[(*o_numPortsFound)], "%s%d", "/dev/test", rand());
-        (*o_numPortsFound)++;
-    }
+    //{
+    //    *o_names = realloc(*o_names, sizeof(char*) * ((*o_numPortsFound) + 1));
+    //    (*o_names)[(*o_numPortsFound)] = malloc(sizeof(char) * (strlen("/dev/test") + 100));
+    //    sprintf((*o_names)[(*o_numPortsFound)], "%s%d", "/dev/test", rand());
+    //    (*o_numPortsFound)++;
+    //}
     wasEof = feof(procfile);
     closedir(dir);
     fclose(procfile);
