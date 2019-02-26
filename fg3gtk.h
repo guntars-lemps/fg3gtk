@@ -11,6 +11,8 @@ typedef enum {ST_ERROR, ST_INFO} t_status_type;
 
 typedef enum {NOT_SELECTED, DEVICE_ERROR, DISCONNECTED, CONNECTED} t_device_status;
 
+typedef enum {CMD_PING, CMD_SET_FREQUENCIES, CMD_STORE} t_cmd;
+
 typedef struct
 {
     gboolean enabled;
@@ -40,6 +42,7 @@ void set_values_for_phase_mode();
 char *val2str(gdouble x, const char *unit);
 void update_info_labels();
 void update_devices_list();
+void send_cmd(t_cmd cmd);
 
 
 #endif

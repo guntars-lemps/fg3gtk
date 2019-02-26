@@ -25,32 +25,35 @@ gchar *serial_device = NULL;
 
 PSerLibHandle_t serial_device_handle = NULL;
 
+guint16 serial_cmd_timeout = 0;
+
 // todo
 /*
 
-1. timer handler funkcijā -
-    * ja iestājas taimauts uz ping vai citu komandu - tad DISCONNECTED
-    * ja DISCONNECTED tad sūta ping
+1. timer 0.1s handlers
 
-2. receive handlers - vēl viens taimers (0.1s) ???
-    * ja saņem jebkādu atbildi (ne tikai pong) tad CONNECTED
-    * ja CRC error tad statusu DEVICE_ERROR, bet ping pongu nesūtam!
-    * ja nav disconnected tad eneiblo pogas
-    * ja saņem BAD - tad parāda ERROR, eneiblo pogas
-    * ja saņem OK - tad parāda DONE, eneiblo pogas
-    * ja saņem EEPROM ERROR tad parāda, eneiblo pogas
+    ja kaut kas saņemts tad {
+        * ja saņem jebkādu atbildi (ne tikai pong) tad CONNECTED
+        * ja CRC error tad statusu DEVICE_ERROR, bet ping pongu nesūtam!
+        * ja nav disconnected tad eneiblo pogas
+        * ja saņem BAD - tad parāda ERROR, eneiblo pogas
+        * ja saņem OK - tad parāda DONE, eneiblo pogas
+        * ja saņem EEPROM ERROR tad parāda, eneiblo pogas
+    } else {
+        * ja iestājas taimauts uz ping vai citu komandu - tad DISCONNECTED
+    }
 
-3. send pogas funkcijas (pieliek crc) -
-    * izsūta un diseiblo pogas
+2. send pogas funkcijas
+    * izsūta komandu un diseiblo pogas (pie starta jābūt diseiblotām!)
     * parāda "SENDING"
 
-4. Pēc tam - izsviest liekos ttyS[N]
+3. Pēc tam - izsviest liekos ttyS[N]
    varētu izmantot /proc/tty/driver/serial bet vajag root !!!
    kā bez root tiesībām noteikt reālās serial devices ????
 
-5. auto send checkbox
+4. auto send checkbox
 
-6. uztaisīt normālus make un config
+5. uztaisīt normālus make un config
 
 
 */
@@ -94,9 +97,6 @@ int main(int argc, char *argv[])
 
     refresh_ui();
 
-   // set_status_label(ST_ERROR, "DISCONNECTED");
-
-//return 0;
     g_timeout_add(1000, (GSourceFunc)time_handler, (gpointer)window);
 
     gtk_main();
@@ -112,6 +112,7 @@ int main(int argc, char *argv[])
 void button_send_click()
 {
     printf("button_send_click()\n");
+    send_cmd(CMD_SET_FREQUENCIES);
 }
 
 
@@ -962,6 +963,10 @@ gboolean time_handler(GtkWidget *widget)
 
     update_devices_list();
 
+    if (device_status == DISCONNECTED) {
+        send_cmd(CMD_PING);
+    }
+
     // gtk_widget_queue_draw(widget);
 
     return TRUE;
@@ -1387,7 +1392,6 @@ void update_devices_list()
 
             gchar *item_text;
             gtk_tree_model_get(m, &iter, 0, &item_text, -1);
-            ///printf("---> |%s|\n", item_text);
 
             if (strcmp(devices[i], item_text)) {
                 printf("CHANGED! %s<>%s\n", devices[i], item_text);
@@ -1403,17 +1407,13 @@ void update_devices_list()
     // if changed then remove all items and add new ones
     if (changed) {
 
-
-        //gchar *active_device_text = gtk_combo_box_text_get_active_text(cb);
-        //printf("active_device_text = %s\n", ((active_device_text == NULL) ? "NULL" : active_device_text));
-
         ignore_device_change = TRUE;
         gtk_combo_box_text_remove_all(cb);
         ignore_device_change = FALSE;
 
         gboolean device_found = FALSE;
         for (int i = 0; i < n; i++) {
-     //     printf("Adding to combobox %s\n", devices[i]);
+
             gtk_combo_box_text_append_text(cb, devices[i]);
             if ((serial_device != NULL) && !strcmp(devices[i], serial_device)) {
                 gtk_combo_box_set_active(GTK_COMBO_BOX(cb), i);
@@ -1426,7 +1426,76 @@ void update_devices_list()
             set_status_label(ST_ERROR, "NOT SELECTED");
             PSerLib_close(&serial_device_handle);
         }
-
-        //g_free(active_device_text);
     }
+}
+
+void send_cmd(t_cmd cmd)
+{
+    guint8 buffer[30];
+    guint16 len = 0;
+
+    switch (cmd) {
+
+        case CMD_PING:
+            printf("Send command PING\n");
+            buffer[0] = 0x00;
+            len = 1;
+            break;
+
+        case CMD_SET_FREQUENCIES:
+            printf("Send command SET FREQUENCIES\n");
+            buffer[0] = 0x01;
+            // DELAY F1 H/L
+            buffer[1] = f1.delay >> 8;
+            buffer[2] = f1.delay & 0xff;
+            // ON    F1 H/L, if ON == 0 then frequency is muted (off)
+            buffer[3] = f1.enabled ? (f1.on >> 8) : 0x00;
+            buffer[4] = f1.enabled ? (f1.on & 0xff) : 0x00;
+            // OFF   F1 H/L
+            buffer[5] = (f1.period - f1.on) >> 8;
+            buffer[6] = (f1.period - f1.on) & 0xff;
+            // DELAY F2 H/L
+            buffer[7] = f2.delay >> 8;
+            buffer[8] = f2.delay & 0xff;
+            // ON    F2 H/L, if ON == 0 then frequency is muted (off)
+            buffer[9] = f2.enabled ? (f2.on >> 8) : 0x00;
+            buffer[10] = f2.enabled ? (f2.on & 0xff) : 0x00;
+            // OFF   F2 H/L
+            buffer[11] = (f2.period - f2.on) >> 8;
+            buffer[12] = (f2.period - f2.on) & 0xff;
+            // DELAY F3 H/L
+            buffer[13] = f3.delay >> 8;
+            buffer[14] = f3.delay & 0xff;
+            // ON    F3 H/L, if ON == 0 then frequency is muted (off)
+            buffer[15] = f3.enabled ? (f3.on >> 8) : 0x00;
+            buffer[16] = f3.enabled ? (f3.on & 0xff) : 0x00;
+            // OFF   F3 H/L
+            buffer[17] = (f3.period - f3.on) >> 8;
+            buffer[18] = (f3.period - f3.on) & 0xff;
+            len = 19;
+            break;
+
+        case CMD_STORE:
+            printf("Send command STORE\n");
+            buffer[0] = 0x02;
+            len = 1;
+            break;
+        default:
+            return;
+    }
+
+    // Add CRC16
+    guint16 crc = crc16_modbus(buffer, len);
+    buffer[len++] = crc >> 8;
+    buffer[len++] = crc & 0xff;
+
+    // Send
+    int written;
+    PSerLib_writeBinaryData(serial_device_handle, buffer, len, &written);
+    if (len != written) {
+        printf("Send error, buffer len = %d, actually sent bytes = %d\n", len, written);
+        // ... what to do ???
+    }
+
+    serial_cmd_timeout = 0;
 }
