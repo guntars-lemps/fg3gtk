@@ -341,13 +341,16 @@ int PSerLib_check_device_real(char *device)
     struct serial_struct serinfo;
     int fd;
 
-    if ((fd = open(device, O_RDWR|O_NONBLOCK)) < 0) {
+    if (strncmp(device, "/dev/ttyS", strlen("/dev/ttyS"))) {
+        return 1;
+    }
+
+    if ((fd = open(device, O_RDWR | O_NONBLOCK)) < 0) {
         fprintf(stderr, "error opening device: %s %s\n", device, strerror(errno));
         return 0;
     }
     serinfo.reserved_char[0] = 0;
     if (ioctl(fd, TIOCGSERIAL, &serinfo) < 0) {
-        printf("Cannot get serial info\n");
         close(fd);
         return 0;
     }

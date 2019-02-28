@@ -30,9 +30,6 @@ guint16 serial_cmd_timeout = 0;
 // todo
 /*
 
-
-0. Notestēt vai darbojas USB0 ar dialout grupu ???
-
 1. timer 0.1s handlers
 
     ja kaut kas saņemts tad {
@@ -46,14 +43,9 @@ guint16 serial_cmd_timeout = 0;
         * ja iestājas taimauts uz ping vai citu komandu - tad DISCONNECTED
     }
 
-2. send pogas funkcijas
-    * izsūta komandu un diseiblo pogas
-    * parāda "SENDING"
+2. auto send checkbox
 
-3. auto send checkbox
-
-4. uztaisīt normālus make un config
-
+3. uztaisīt normālus make un config
 
 */
 
@@ -98,6 +90,8 @@ int main(int argc, char *argv[])
 
     g_timeout_add(1000, (GSourceFunc)time_handler, (gpointer)window);
 
+    enable_sending_widgets(FALSE);
+
     gtk_main();
 
     save_config();
@@ -112,12 +106,17 @@ void button_send_click()
 {
     printf("button_send_click()\n");
     send_cmd(CMD_SET_FREQUENCIES);
+    enable_sending_widgets(FALSE);
+    set_status_label(ST_INFO, "SENDING");
 }
 
 
 void button_store_click()
 {
     printf("button_store_click()\n");
+    send_cmd(CMD_STORE);
+    enable_sending_widgets(FALSE);
+    set_status_label(ST_INFO, "SENDING");
 }
 
 
@@ -966,8 +965,6 @@ gboolean time_handler(GtkWidget *widget)
         send_cmd(CMD_PING);
     }
 
-    // gtk_widget_queue_draw(widget);
-
     return TRUE;
 }
 
@@ -1498,4 +1495,12 @@ void send_cmd(t_cmd cmd)
     }
 
     serial_cmd_timeout = 0;
+}
+
+
+void enable_sending_widgets(gboolean enable)
+{
+    gtk_widget_set_sensitive(GTK_WIDGET(gtk_builder_get_object(builder, "cb_auto_send")), enable);
+    gtk_widget_set_sensitive(GTK_WIDGET(gtk_builder_get_object(builder, "button_store")), enable);
+    gtk_widget_set_sensitive(GTK_WIDGET(gtk_builder_get_object(builder, "button_send")), enable);
 }
