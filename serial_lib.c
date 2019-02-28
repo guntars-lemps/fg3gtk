@@ -29,11 +29,32 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <limits.h>
+#include <errno.h>
 
 
 static const char *PSerLib_getPlatformSpecificErrorMessage(PSL_ErrorCodes_e i_errorCode);
 static const char c_errMsgUnknown[] = "Unknown error code.";
 
+struct serial_struct {
+    int type;
+    int line;
+    unsigned int port;
+    int irq;
+    int flags;
+    int xmit_fifo_size;
+    int custom_divisor;
+    int baud_base;
+    unsigned short close_delay;
+    char io_type;
+    char reserved_char[1];
+    int hub6;
+    unsigned short closing_wait; /* time to wait before closing */
+    unsigned short closing_wait2; /* no longer used... */
+    unsigned char *iomem_base;
+    unsigned short iomem_reg_shift;
+    unsigned int port_high;
+    unsigned long iomap_base; /* cookie passed into ioremap */
+};
 
 const char *PSerLib_getErrorMessage(PSL_ErrorCodes_e i_errorCode)
 {
@@ -315,11 +336,31 @@ void sort(char *arr[], int n)
 }
 
 
+int PSerLib_check_device_real(char *device)
+{
+    struct serial_struct serinfo;
+    int fd;
+
+    if ((fd = open(device, O_RDWR|O_NONBLOCK)) < 0) {
+        fprintf(stderr, "error opening device: %s %s\n", device, strerror(errno));
+        return 0;
+    }
+    serinfo.reserved_char[0] = 0;
+    if (ioctl(fd, TIOCGSERIAL, &serinfo) < 0) {
+        printf("Cannot get serial info\n");
+        close(fd);
+        return 0;
+    }
+    close(fd);
+    if (serinfo.irq || serinfo.port) {
+        return 1;
+    }
+    return 0;
+}
+
 
 PSL_ErrorCodes_e PSerLib_getAvailablePorts(char **(*o_names), int *o_numPortsFound)
 {
-    // pielikt /proc/tty/driver/serial pārbaudi
-
     int wasEof;
     FILE *procfile;
     DIR *dir;
@@ -353,13 +394,18 @@ PSL_ErrorCodes_e PSerLib_getAvailablePorts(char **(*o_names), int *o_numPortsFou
                     *sp = '\0'; // now we hava a device base name in deviceName
                     rewinddir(dir);
                     while ((entry = readdir(dir)) != NULL) {
+                        char *tmpbuf = malloc(sizeof(char) * (strlen(entry->d_name) + 6));
+                        sprintf(tmpbuf, "/dev/%s", entry->d_name);
                         if (strstr(entry->d_name, deviceName)) {
-                            *o_names = realloc(*o_names, sizeof(char*) * ((*o_numPortsFound) + 1));
-                            (*o_names)[(*o_numPortsFound)] = malloc(sizeof(char) * (strlen(entry->d_name) + 6));
-                        ///    printf("New device found Nr. %d = ""/dev/%s""\n", *o_numPortsFound + 1, entry->d_name);
-                            sprintf((*o_names)[(*o_numPortsFound)], "/dev/%s", entry->d_name);
-                            (*o_numPortsFound)++;
+                            if (PSerLib_check_device_real(tmpbuf)) {
+                                *o_names = realloc(*o_names, sizeof(char*) * ((*o_numPortsFound) + 1));
+                                (*o_names)[(*o_numPortsFound)] = malloc(sizeof(char) * (strlen(entry->d_name) + 6));
+                                sprintf((*o_names)[(*o_numPortsFound)], "/dev/%s", entry->d_name);
+                                (*o_numPortsFound)++;
+                            }
                         }
+                        free(tmpbuf);
+                        tmpbuf = NULL;
                     }
                 }
             }

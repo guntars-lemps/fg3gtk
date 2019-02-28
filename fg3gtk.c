@@ -30,6 +30,9 @@ guint16 serial_cmd_timeout = 0;
 // todo
 /*
 
+
+0. Notestēt vai darbojas USB0 ar dialout grupu ???
+
 1. timer 0.1s handlers
 
     ja kaut kas saņemts tad {
@@ -44,16 +47,12 @@ guint16 serial_cmd_timeout = 0;
     }
 
 2. send pogas funkcijas
-    * izsūta komandu un diseiblo pogas (pie starta jābūt diseiblotām!)
+    * izsūta komandu un diseiblo pogas
     * parāda "SENDING"
 
-3. Pēc tam - izsviest liekos ttyS[N]
-   varētu izmantot /proc/tty/driver/serial bet vajag root !!!
-   kā bez root tiesībām noteikt reālās serial devices ????
+3. auto send checkbox
 
-4. auto send checkbox
-
-5. uztaisīt normālus make un config
+4. uztaisīt normālus make un config
 
 
 */
@@ -1428,6 +1427,7 @@ void update_devices_list()
         }
     }
 }
+
 
 void send_cmd(t_cmd cmd)
 {
