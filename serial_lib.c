@@ -215,7 +215,7 @@ PSL_ErrorCodes_e PSerLib_open(const char *i_portName, PSerLibHandle_t *o_handle)
     // O_RDWR - we need read and write access
     // O_CTTY - prevent other input (like keyboard) from affecting what we read
     // O_NDELAY - We don’t care if the other side is connected (some devices don’t explicitly connect)
-    pi.port = open(nameBuffer, O_RDWR | O_NOCTTY);
+    pi.port = open(nameBuffer, O_RDWR | O_NOCTTY | O_NONBLOCK);
 
     if (pi.port == -1) {
         return PSL_ERROR_couldNotOpen;
@@ -480,8 +480,10 @@ PSL_ErrorCodes_e PSerLib_readBinaryData(PSerLibHandle_t io_port,
         *o_bytesRead = 0;
     }
     for (; dataToRead; --dataToRead) {
-        if (read(io_port->port, o_data, 1) == 0) {
-            return PSL_ERROR_readDataFailed;
+        int count = read(io_port->port, o_data, 1);
+        if ((count < 0) && (errno == EAGAIN)) {
+            // there is no data to be read
+            return PSL_ERROR_none;
         }
         if (o_bytesRead) {
             ++(*o_bytesRead);

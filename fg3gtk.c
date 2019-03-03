@@ -25,27 +25,14 @@ gchar *serial_device = NULL;
 
 PSerLibHandle_t serial_device_handle = NULL;
 
-guint16 serial_cmd_timeout = 0;
+guint16 serial_cmd_timeout;
 
 // todo
 /*
 
-1. timer 0.1s handlers
+1. auto send checkbox
 
-    ja kaut kas saņemts tad {
-        * ja saņem jebkādu atbildi (ne tikai pong) tad CONNECTED
-        * ja CRC error tad statusu DEVICE_ERROR, bet ping pongu nesūtam!
-        * ja nav disconnected tad eneiblo pogas
-        * ja saņem BAD - tad parāda ERROR, eneiblo pogas
-        * ja saņem OK - tad parāda DONE, eneiblo pogas
-        * ja saņem EEPROM ERROR tad parāda, eneiblo pogas
-    } else {
-        * ja iestājas taimauts uz ping vai citu komandu - tad DISCONNECTED
-    }
-
-2. auto send checkbox
-
-3. uztaisīt normālus make un config
+2. uztaisīt normālus make un config
 
 */
 
@@ -88,7 +75,9 @@ int main(int argc, char *argv[])
 
     refresh_ui();
 
-    g_timeout_add(1000, (GSourceFunc)time_handler, (gpointer)window);
+    g_timeout_add(1000, (GSourceFunc)timer_handler, (gpointer)window);
+
+    g_timeout_add(100, (GSourceFunc)receiver_timer_handler, (gpointer)window);
 
     enable_sending_widgets(FALSE);
 
@@ -129,6 +118,8 @@ void cb_auto_send_toggle()
 void serial_device_change()
 {
     if (!ignore_device_change) {
+        enable_sending_widgets(FALSE);
+
         gchar *new_serial_device = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(gtk_builder_get_object(builder, "device_list")));
         printf("[1] serial_device = %s, new_serial_device = %s\n", serial_device, new_serial_device);
         if (serial_device != NULL) {
@@ -146,6 +137,7 @@ void serial_device_change()
             printf("[2] Initialize device\n");
 
             PSerLib_close(&serial_device_handle);
+            sleep(1);
             PSL_ErrorCodes_e error = PSerLib_open(serial_device, &serial_device_handle);
             if (error) {
                 printf("Serial device error: %s\n", PSerLib_getErrorMessage(error));
@@ -952,7 +944,8 @@ void set_status_label(t_status_type type, char *label_text)
 }
 
 
-gboolean time_handler(GtkWidget *widget)
+// timer for device connection/disconnection detection, update device status
+gboolean timer_handler(GtkWidget *widget)
 {
     if (widget == NULL) {
         return FALSE;
@@ -964,6 +957,66 @@ gboolean time_handler(GtkWidget *widget)
     if (device_status == DISCONNECTED) {
         send_cmd(CMD_PING);
     }
+
+    return TRUE;
+}
+
+
+// timer handler function to read received responses from device
+gboolean receiver_timer_handler(GtkWidget *widget)
+{
+    if (widget == NULL) {
+        return FALSE;
+    }
+
+    guint8 buf[3];
+
+    int bytes_read;
+    // Possible responses:
+
+    // 00 + CRC16 = OK, COMMAND EXECUTED
+    // 01 + CRC16 = BAD COMMAND (CRC ERROR)
+    // 02 + CRC16 = BAD DATA IN EEPROM (CRC ERROR)
+
+    if (PSerLib_readBinaryData(serial_device_handle, buf, 3, &bytes_read) == PSL_ERROR_none) {
+        if (bytes_read == 3) {
+            // check crc
+            guint16 crc = crc16_modbus(buf, 1);
+            if ((buf[1] != (crc >> 8)) || (buf[2] != (crc & 0xff))) {
+                printf("CRC error, bytes read = %d, buf [%d,%d,%d] !!!\n", bytes_read, buf[0], buf[1], buf[2]);
+                device_status = DEVICE_ERROR;
+                set_status_label(ST_ERROR, "DEVICE ERROR");
+            } else {
+                printf("Received response: %d\n", buf[0]);
+                device_status = CONNECTED;
+                enable_sending_widgets(TRUE);
+                switch (buf[0]) {
+                    case 0x00:
+                        set_status_label(ST_INFO, "OK");
+                        break;
+                    case 0x01:
+                        set_status_label(ST_INFO, "BAD CRC");
+                        break;
+                    case 0x02:
+                        set_status_label(ST_INFO, "EEPROM ERROR");
+                        break;
+                    default:
+                        set_status_label(ST_INFO, "CONNECTED");
+                }
+            }
+            serial_cmd_timeout = 0;
+        } else { // 0 or less than 3 bytes received
+            if (--serial_cmd_timeout == 0) {
+                printf("RECEIVE TIMEOUT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+                device_status = DISCONNECTED;
+                set_status_label(ST_ERROR, "DISCONNECTED");
+            }
+        }
+    } else {
+       printf("READ error!!!\n");
+    }
+
+    //printf("Receiver handler\n");
 
     return TRUE;
 }
@@ -1420,6 +1473,7 @@ void update_devices_list()
         if (!device_found) {
             device_status = NOT_SELECTED;
             set_status_label(ST_ERROR, "NOT SELECTED");
+            enable_sending_widgets(FALSE);
             PSerLib_close(&serial_device_handle);
         }
     }
@@ -1494,7 +1548,7 @@ void send_cmd(t_cmd cmd)
         // ... what to do ???
     }
 
-    serial_cmd_timeout = 0;
+    serial_cmd_timeout = 3;
 }
 
 
