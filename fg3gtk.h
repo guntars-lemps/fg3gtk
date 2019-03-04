@@ -45,6 +45,7 @@ void update_info_labels();
 void update_devices_list();
 void send_cmd(t_cmd cmd);
 void enable_sending_widgets(gboolean enable);
+gboolean auto_send_timer_handler(GtkWidget *widget);
 
 
 #endif
