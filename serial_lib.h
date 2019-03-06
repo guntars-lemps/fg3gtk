@@ -25,7 +25,7 @@
 
 
 // Handle that represents a serial port object
-typedef struct PSerLibHandleInternal_t * PSerLibHandle_t;
+typedef struct PSerLibHandleInternal_t *PSerLibHandle_t;
 
 // Indicates a bad Handle
 #define PSL_NOPORT_HANDLE ((PSerLibHandle_t)(0))
@@ -154,15 +154,14 @@ const char *PSerLib_getErrorMessage(PSL_ErrorCodes_e i_errorCode);
  *
  * @details  Fiddeling out devices may be done in following fashion:
 \code{.c}
-  char buff[1000];
-  char* iterator = buff;
-  int n;
-  PSerLib_getAvailablePorts(buff, sizeof(buff), &n);
-  printf("found %i devices:\n", n);
-  for( ;*iterator; iterator+=strlen(iterator)+1 )
-  {
-    printf("%s\n",iterator);
-  }
+    char buff[1000];
+    char *iterator = buff;
+    int n;
+    PSerLib_getAvailablePorts(buff, sizeof(buff), &n);
+    printf("found %i devices:\n", n);
+    for(;*iterator; iterator += strlen(iterator) + 1) {
+        printf("%s\n", iterator);
+    }
 \endcode
  * @ingroup PortUtility
  */

@@ -76,8 +76,8 @@ static char *discard_line(ini_t *ini, char *p)
 
 static char *unescape_quoted_value(ini_t *ini, char *p)
 {
-  /* Use `q` as write-head and `p` as read-head, `p` is always ahead of `q`
-   * as escape sequences are always larger than their resultant data */
+    /* Use `q` as write-head and `p` as read-head, `p` is always ahead of `q`
+     * as escape sequences are always larger than their resultant data */
     char *q = p;
     int done = 0;
     p++;

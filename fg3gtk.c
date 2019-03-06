@@ -9,7 +9,6 @@
 #include "ini.h"
 #include "serial_lib.h"
 
-//make clean && make && ./fg3gtk
 
 GtkBuilder *builder;
 
@@ -17,7 +16,7 @@ t_mode mode = MODE_CUSTOM;
 
 tfrequencies f1, f2, f3;
 
-t_device_status device_status = NOT_SELECTED; // typedef enum {NOT_SELECTED, DEVICE_ERROR, DISCONNECTED, CONNECTED} t_device_status;
+t_device_status device_status = NOT_SELECTED;
 
 gboolean ignore_device_change = FALSE;
 
@@ -29,16 +28,7 @@ guint16 serial_cmd_timeout;
 
 guint16 auto_send_timeot;
 
-gboolean auto_send; // store auto send widget state to save config after widget destroyed
-
-// todo
-/*
-
-1. clean code (printf...)
-
-2. uztaisīt normālus make un config
-
-*/
+gboolean auto_send;
 
 
 int main(int argc, char *argv[])
@@ -99,7 +89,6 @@ int main(int argc, char *argv[])
 
 void button_send_click()
 {
-    printf("button_send_click()\n");
     send_cmd(CMD_SET_FREQUENCIES);
     enable_sending_widgets(FALSE);
     set_status_label(ST_INFO, "SENDING");
@@ -108,7 +97,6 @@ void button_send_click()
 
 void button_store_click()
 {
-    printf("button_store_click()\n");
     send_cmd(CMD_STORE);
     enable_sending_widgets(FALSE);
     set_status_label(ST_INFO, "SENDING");
@@ -117,7 +105,6 @@ void button_store_click()
 
 void cb_auto_send_toggle()
 {
-    printf("cb_auto_send_toggle()\n");
     auto_send = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(builder, "cb_auto_send")));
     printf("AUTO SEND ============ %d\n", auto_send);
 }
@@ -129,12 +116,12 @@ void serial_device_change()
         enable_sending_widgets(FALSE);
 
         gchar *new_serial_device = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(gtk_builder_get_object(builder, "device_list")));
-        printf("[1] serial_device = %s, new_serial_device = %s\n", serial_device, new_serial_device);
+
         if (serial_device != NULL) {
             g_free(serial_device);
         }
         serial_device = new_serial_device;
-        printf("Serial device changed to %s\n", serial_device);
+
         if (serial_device == NULL) {
             device_status = NOT_SELECTED;
             set_status_label(ST_ERROR, "NOT SELECTED");
@@ -142,13 +129,11 @@ void serial_device_change()
             device_status = DISCONNECTED;
             set_status_label(ST_ERROR, "DISCONNECTED");
 
-            printf("[2] Initialize device\n");
-
             PSerLib_close(&serial_device_handle);
-            sleep(1);
+            sleep(1); // give time to device to initialize
             PSL_ErrorCodes_e error = PSerLib_open(serial_device, &serial_device_handle);
             if (error) {
-                printf("Serial device error: %s\n", PSerLib_getErrorMessage(error));
+                fprintf(stderr, "Serial device error: %s\n", PSerLib_getErrorMessage(error));
                 device_status = DEVICE_ERROR;
                 set_status_label(ST_ERROR, "DEVICE ERROR");
             } else {
@@ -162,7 +147,6 @@ void serial_device_change()
 // ON/OFF switches
 void f1_switch_activate()
 {
-
     gboolean active = gtk_switch_get_active(GTK_SWITCH(gtk_builder_get_object(builder, "f1_switch")));
 
     switch (mode) {
@@ -871,7 +855,6 @@ void refresh_ui()
         gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(builder, "f3_rb_period")), TRUE);
     }
 
-
     // mode
     if (mode == MODE_CUSTOM) {
         gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(builder, "rb_custom_mode")), TRUE);
@@ -889,16 +872,6 @@ void refresh_ui()
 }
 
 
-// 01 20 34 56 ab ce 00 55
-// 0x996D
-/*
-guint8 test_crc[] = {0x01, 0x20, 0x34, 0x56, 0xab, 0xce, 0x00, 0x55};
-guint8 buflen = 8;
-guint16 crc;
-
-crc = crc16_modbus(test_crc, buflen);
-printf("CRC16 = %04x\n", crc);
-*/
 guint16 crc16_modbus(guint8 *buf, guint16 len)
 {
     guint16 crc = 0xffff;
@@ -960,7 +933,6 @@ gboolean timer_handler(GtkWidget *widget)
     if (widget == NULL) {
         return FALSE;
     }
-    printf("Tick\n");
 
     update_devices_list();
 
@@ -993,11 +965,9 @@ gboolean receiver_timer_handler(GtkWidget *widget)
             // check crc
             guint16 crc = crc16_modbus(buf, 1);
             if ((buf[1] != (crc >> 8)) || (buf[2] != (crc & 0xff))) {
-                printf("CRC error, bytes read = %d, buf [%d,%d,%d] !!!\n", bytes_read, buf[0], buf[1], buf[2]);
                 device_status = DEVICE_ERROR;
                 set_status_label(ST_ERROR, "DEVICE ERROR");
             } else {
-                printf("Received response: %d\n", buf[0]);
                 device_status = CONNECTED;
                 enable_sending_widgets(TRUE);
                 switch (buf[0]) {
@@ -1017,17 +987,11 @@ gboolean receiver_timer_handler(GtkWidget *widget)
             serial_cmd_timeout = 0;
         } else { // 0 or less than 3 bytes received
             if (--serial_cmd_timeout == 0) {
-                printf("RECEIVE TIMEOUT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
                 device_status = DISCONNECTED;
                 set_status_label(ST_ERROR, "DISCONNECTED");
             }
         }
-    } else {
-       printf("READ error!!!\n");
     }
-
-    //printf("Receiver handler\n");
-
     return TRUE;
 }
 
@@ -1278,7 +1242,6 @@ void load_stored_config()
         // serial device
         const char *device_str = ini_get(config, NULL, "device");
         if (device_str) {
-            printf("DEVICE IN CONFIG = |%s|\n", device_str);
             serial_device = strdup(device_str);
         }
         // auto send
@@ -1383,7 +1346,7 @@ void save_config()
     path = realloc(path, strlen(home_dir) + strlen(conf_dir) + strlen(file_name) + 1);
     sprintf(path,"%s%s%s", home_dir, conf_dir, file_name);
 
-    FILE * f = fopen(path, "w");
+    FILE *f = fopen(path, "w");
     free(path);
 
     if (f != NULL) {
@@ -1393,12 +1356,6 @@ void save_config()
         // device
         fprintf(f, "device = %s\n\n", ((serial_device == NULL) ? "" : serial_device));
         // auto send
-    if (auto_send)
-    {
-        printf("TRUETRUETRUETRUETRUETRUETRUETRUETRUETRUE\n");
-    } else {
-        printf("FALSEFALSEFALSEFALSEFALSEFALSEFALSE\n");
-    }
         fprintf(f, "auto_send = %s\n\n", (auto_send ? "true" : "false"));
         // f1
         fprintf(f, "[f1]\n");
@@ -1432,14 +1389,10 @@ void save_config()
 
 void update_devices_list()
 {
-    printf("update_devices_list()\n");
-
     char **devices;
     int n;
 
     PSerLib_getAvailablePorts(&devices, &n);
-
-    printf("found %i devices:\n", n);
 
     // check if device list is changed
 
@@ -1451,12 +1404,9 @@ void update_devices_list()
 
     gint items_count = gtk_tree_model_iter_n_children(m, NULL);
 
-    printf("rows = %d n= %d\n", items_count, n);
-
     if (items_count != n) {
         changed = TRUE;
     } else {
-        printf("count equal, compare items\n");
         // compare each device
 
         GtkTreeIter iter;
@@ -1468,7 +1418,6 @@ void update_devices_list()
             gtk_tree_model_get(m, &iter, 0, &item_text, -1);
 
             if (strcmp(devices[i], item_text)) {
-                printf("CHANGED! %s<>%s\n", devices[i], item_text);
                 changed = TRUE;
                 break;
             }
@@ -1491,7 +1440,6 @@ void update_devices_list()
             gtk_combo_box_text_append_text(cb, devices[i]);
             if ((serial_device != NULL) && !strcmp(devices[i], serial_device)) {
                 gtk_combo_box_set_active(GTK_COMBO_BOX(cb), i);
-                printf("Restored selected item to : %s\n", devices[i]);
                 device_found = TRUE;
             }
         }
@@ -1513,13 +1461,11 @@ void send_cmd(t_cmd cmd)
     switch (cmd) {
 
         case CMD_PING:
-            printf("Send command PING\n");
             buffer[0] = 0x00;
             len = 1;
             break;
 
         case CMD_SET_FREQUENCIES:
-            printf("Send command SET FREQUENCIES\n");
             buffer[0] = 0x01;
             // DELAY F1 H/L
             buffer[1] = f1.delay >> 8;
@@ -1552,10 +1498,10 @@ void send_cmd(t_cmd cmd)
             break;
 
         case CMD_STORE:
-            printf("Send command STORE\n");
             buffer[0] = 0x02;
             len = 1;
             break;
+
         default:
             return;
     }
@@ -1569,8 +1515,7 @@ void send_cmd(t_cmd cmd)
     int written;
     PSerLib_writeBinaryData(serial_device_handle, buffer, len, &written);
     if (len != written) {
-        printf("Send error, buffer len = %d, actually sent bytes = %d\n", len, written);
-        // ... what to do ???
+        // TODO: Continue sending in loop?
     }
 
     serial_cmd_timeout = 3;
@@ -1598,8 +1543,6 @@ gboolean auto_send_timer_handler(GtkWidget *widget)
         ((f1.enabled != tf1.enabled) || (f1.delay != tf1.delay) || (f1.on != tf1.on) || (f1.period != tf1.period) ||
          (f2.enabled != tf2.enabled) || (f2.delay != tf2.delay) || (f2.on != tf2.on) || (f2.period != tf2.period) ||
          (f3.enabled != tf3.enabled) || (f3.delay != tf3.delay) || (f3.on != tf3.on) || (f3.period != tf3.period))) {
-
-        printf("Auto send ********\n");
 
         send_cmd(CMD_SET_FREQUENCIES);
 
