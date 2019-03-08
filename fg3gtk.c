@@ -874,11 +874,11 @@ void refresh_ui()
 guint16 crc16_modbus(guint8 *buf, guint16 len)
 {
     guint16 crc = 0xffff;
-
-    for (int pos = 0; pos < len; pos++) {
+    int pos;
+    for (pos = 0; pos < len; pos++) {
         crc ^= (guint16)buf[pos];
-
-        for (int i = 0; i < 8; i++) {
+        int i;
+        for (i = 0; i < 8; i++) {
             if ((crc & 0x0001) != 0) {
                 crc >>= 1;
                 crc ^= 0xA001;
@@ -1410,8 +1410,8 @@ void update_devices_list()
 
         GtkTreeIter iter;
         gtk_tree_model_get_iter_first(m, &iter);
-
-        for (int i = 0; i < n; i++) {
+        int i;
+        for (i = 0; i < n; i++) {
 
             gchar *item_text;
             gtk_tree_model_get(m, &iter, 0, &item_text, -1);
@@ -1434,7 +1434,8 @@ void update_devices_list()
         ignore_device_change = FALSE;
 
         gboolean device_found = FALSE;
-        for (int i = 0; i < n; i++) {
+        int i;
+        for (i = 0; i < n; i++) {
 
             gtk_combo_box_text_append_text(cb, devices[i]);
             if ((serial_device != NULL) && !strcmp(devices[i], serial_device)) {
