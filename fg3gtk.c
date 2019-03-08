@@ -106,7 +106,6 @@ void button_store_click()
 void cb_auto_send_toggle()
 {
     auto_send = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(builder, "cb_auto_send")));
-    printf("AUTO SEND ============ %d\n", auto_send);
 }
 
 
