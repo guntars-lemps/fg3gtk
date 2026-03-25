@@ -1,4 +1,4 @@
-This is GUI application for Linux to control fg3 compatible frequency generators. This is an upgraded version which has unified UART protocol, now it automatically checks for device capabilities, adjusts time units and ranges.
+This is GUI application for Linux to control FG3 compatible frequency generators. This is an upgraded version which has unified UART protocol, now it automatically checks for device capabilities, adjusts time units and ranges.
 
 <img src="img/1.png" alt="FG3" width="800"> 
 
