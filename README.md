@@ -6,7 +6,7 @@ Currently compatible devices are
 1. Generator based on avr mcu (Atmega 328) https://github.com/guntars-lemps/fg3avr
 2. Generator based on pico2 (RP2350) https://github.com/guntars-lemps/fg3pico
 
-Pico2 based generator has the highset capabilites, max frequency it can generate is 33Mhz with time resolution 5ns. 
+Pico2 based generator has the highest capabilites, max frequency it can generate is 33Mhz with time resolution 5ns. 
 
 For building it requires libgtk dev package, on Ubuntu or Mint Linux it can be installed by the command
 ```
