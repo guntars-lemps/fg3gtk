@@ -2,7 +2,7 @@ This is GUI application for Linux to control fg3 compatible frequency generators
 
 <img src="img/1.png" alt="FG3" width="800"> 
 
-Currently compatile devices are 
+Currently compatible devices are 
 1. Generator based on avr mcu (Atmega 328) https://github.com/guntars-lemps/fg3avr
 2. Generator based on pico2 (RP2350) https://github.com/guntars-lemps/fg3pico
 
