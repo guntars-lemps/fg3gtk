@@ -6,7 +6,7 @@ CFLAGS=-g -Wall -Wextra `pkg-config --cflags gtk+-3.0 gmodule-2.0`
 LDFLAGS=`pkg-config --libs gtk+-3.0` -rdynamic -lm
 CC=gcc
 
-OBJECTS=fg3gtk.o ini.o serial_lib.o
+OBJECTS=fg3gtk_main.o fg3gtk_spin_boost.o ini.o serial_lib.o
 
 all: fg3gtk
 
@@ -24,4 +24,4 @@ uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/fg3gtk
 
 clean:
-	-rm fg3gtk fg3glade.h *.o
+	-rm -f fg3gtk fg3glade.h *.o
