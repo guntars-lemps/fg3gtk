@@ -540,13 +540,14 @@ void f1_period_adjustment_change()
     gtk_spin_button_set_range(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f1_period")), min_value, max_value);
 
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f1_period")), f1_period);
-    set_values_for_phase_mode();
     f1.period = f1_period;
 
     if (f1.on > (f1.period - min_units)) {
         f1.on = f1.period - min_units;
         gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f1_on_t")), f1.on);
     }
+
+    set_values_for_phase_mode();
     set_dc_values_and_widgets();
     update_info_labels();
 }
@@ -1193,6 +1194,7 @@ void set_values_for_phase_mode()
             gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f2_on_t")), f2.on);
             gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f2_delay")), f2.delay);
             gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f2_period")), f2.period);
+
             dc_value = gtk_entry_get_text(GTK_ENTRY(gtk_builder_get_object(builder, "f1_dc")));
             gtk_entry_set_text(GTK_ENTRY(gtk_builder_get_object(builder, "f2_dc")), dc_value);
             break;
@@ -1205,13 +1207,10 @@ void set_values_for_phase_mode()
             f2.dc_value = f1.dc_value;
 
             gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f2_on_t")), f2.on);
-
             gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f2_delay")), f2.delay);
-
             gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f2_period")), f2.period);
 
             dc_value = gtk_entry_get_text(GTK_ENTRY(gtk_builder_get_object(builder, "f1_dc")));
-
             gtk_entry_set_text(GTK_ENTRY(gtk_builder_get_object(builder, "f2_dc")), dc_value);
 
             f3.delay = 2 * (f1.period / 3);
@@ -1222,6 +1221,7 @@ void set_values_for_phase_mode()
             gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f3_on_t")), f3.on);
             gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f3_delay")), f3.delay);
             gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "f3_period")), f3.period);
+
             dc_value = gtk_entry_get_text(GTK_ENTRY(gtk_builder_get_object(builder, "f1_dc")));
             gtk_entry_set_text(GTK_ENTRY(gtk_builder_get_object(builder, "f3_dc")), dc_value);
             break;

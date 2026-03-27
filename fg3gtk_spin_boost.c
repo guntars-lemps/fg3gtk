@@ -114,6 +114,10 @@ void adjust_value_by_range(gdouble* value, gdouble min_value, gdouble max_value)
 
 void boost(t_spin_boost* spin_boost)
 {
+    if ((spin_boost->widget_name != NULL) && !gtk_widget_get_sensitive(GTK_WIDGET(gtk_builder_get_object(builder,  spin_boost->widget_name)))) {
+        return;
+    }
+
     // skip boosting if change signal is from boost itself
     if (!spin_boost->boosted && (spin_boost->change_boost != 0)) {
 
